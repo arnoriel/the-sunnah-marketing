@@ -696,25 +696,67 @@ function ProcessSection() {
   );
 }
 
-function VideoCard({ src }: { src: string; label: string }) {
+// ── TESTIMONIALS ───────────────────────────────────────────────────────────
+function VideoCard({ src, label }: { src: string; label: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (vid.paused) {
+      vid.play();
+      setIsPlaying(true);
+    } else {
+      vid.pause();
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div
-      className="relative overflow-hidden border border-white/8 group hover:border-[#1a6bff]/40 transition-all duration-300 w-full"
+      className="relative overflow-hidden border border-white/8 group cursor-pointer hover:border-[#1a6bff]/40 transition-all duration-300 w-full"
       style={{ aspectRatio: "9/16" }}
+      onClick={togglePlay}
     >
-      <iframe
+      <div className="absolute inset-0 bg-[#0d0d18]" />
+
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
         src={src}
-        style={{
-          position: "absolute",
-          top: "-40px",
-          left: "0px",
-          width: "100%",
-          height: "calc(100% + 96px)",
-          border: "none",
-        }}
-        allow="autoplay"
-        allowFullScreen
+        playsInline
+        preload="metadata"
+        onEnded={() => setIsPlaying(false)}
       />
+
+      {/* Play/Pause overlay */}
+      <div
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+          isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+        }`}
+        style={{ background: isPlaying ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.45)" }}
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.93 }}
+          className="w-16 h-16 rounded-full bg-[#1a6bff]/80 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm shadow-[0_0_30px_rgba(26,107,255,0.5)]"
+        >
+          {isPlaying ? (
+            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="4" height="16" rx="1" />
+              <rect x="14" y="4" width="4" height="16" rx="1" />
+            </svg>
+          ) : (
+            <Play className="w-6 h-6 text-white fill-white ml-1" />
+          )}
+        </motion.div>
+      </div>
+
+      {/* Label bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <p className="font-dm text-xs text-white/70">{label}</p>
+      </div>
     </div>
   );
 }
@@ -754,10 +796,7 @@ function TestimonialsSection() {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
           <FadeIn delay={0}>
-            <VideoCard 
-              src="https://drive.google.com/file/d/1RbWTocZ7SNMfVi6D8oa-ItP9IrTChvnc/preview" 
-              label="Client Video Testimonial" 
-            />
+            <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
           </FadeIn>
 
           {photoItems.map((item, i) => (
