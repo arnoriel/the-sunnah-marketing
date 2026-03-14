@@ -28,6 +28,19 @@ interface FAQ {
   a: string;
 }
 
+// ── MOBILE DETECTION ───────────────────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 // ── DATA ───────────────────────────────────────────────────────────────────
 const NAV_LINKS = [
   { label: "Services", href: "#services" },
@@ -130,14 +143,25 @@ const PROCESS = [
 ];
 
 // ── FADE IN WRAPPER ────────────────────────────────────────────────────────
-function FadeIn({ children, delay = 0, className = "", direction = "up" }: {
-  children: React.ReactNode; delay?: number; className?: string; direction?: "up" | "down" | "left" | "right" | "none";
+function FadeIn({
+  children,
+  delay = 0,
+  className = "",
+  direction = "up",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+  direction?: "up" | "down" | "left" | "right" | "none";
 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin: "-60px" });
   const dirs = {
-    up: { y: 40, x: 0 }, down: { y: -40, x: 0 },
-    left: { y: 0, x: 40 }, right: { y: 0, x: -40 }, none: { y: 0, x: 0 },
+    up: { y: 30, x: 0 },
+    down: { y: -30, x: 0 },
+    left: { y: 0, x: 30 },
+    right: { y: 0, x: -30 },
+    none: { y: 0, x: 0 },
   };
   return (
     <motion.div
@@ -145,7 +169,7 @@ function FadeIn({ children, delay = 0, className = "", direction = "up" }: {
       className={className}
       initial={{ opacity: 0, ...dirs[direction] }}
       animate={inView ? { opacity: 1, y: 0, x: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -159,7 +183,7 @@ function Navbar() {
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", fn);
+    window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
@@ -170,20 +194,26 @@ function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? "bg-[#050507]/90 backdrop-blur-xl border-b border-white/5 py-3" : "bg-transparent py-5"
+          scrolled
+            ? "bg-[#050507]/95 backdrop-blur-xl border-b border-white/5 py-3"
+            : "bg-transparent py-4 md:py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
           <a href="#" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="w-10 h-10 overflow-hidden rounded-lg flex-shrink-0">
+              <div className="w-9 h-9 md:w-10 md:h-10 overflow-hidden rounded-lg flex-shrink-0">
                 <img src="/icon.jpg" alt="TSM Logo" className="w-full h-full object-cover" />
               </div>
               <div className="absolute inset-0 bg-[#1a6bff] opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
             </div>
-            <div className="hidden sm:block">
-              <p className="font-syne font-bold text-white text-sm leading-none">The Sunnah Marketing</p>
-              <p className="font-dm text-[10px] text-white/40 tracking-widest uppercase mt-0.5">Halal Marketing Agency</p>
+            <div className="block">
+              <p className="font-syne font-bold text-white text-xs md:text-sm leading-none">
+                The Sunnah Marketing
+              </p>
+              <p className="font-dm text-[9px] md:text-[10px] text-white/40 tracking-widest uppercase mt-0.5">
+                Halal Marketing Agency
+              </p>
             </div>
           </a>
 
@@ -211,12 +241,23 @@ function Navbar() {
             </a>
           </div>
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden text-white/70 hover:text-white transition-colors"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile: CTA + Hamburger */}
+          <div className="flex lg:hidden items-center gap-3">
+            <a
+              href="https://calendly.com/djalifsr/thesunnahmarketing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shimmer-btn font-syne font-bold text-xs text-white px-4 py-2 rounded-lg"
+            >
+              Book Call
+            </a>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="text-white/70 hover:text-white transition-colors p-1"
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </motion.nav>
 
@@ -226,31 +267,32 @@ function Navbar() {
             initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-40 bg-[#050507] flex flex-col pt-24 px-6"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-40 bg-[#050507] flex flex-col pt-20 px-6"
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-5">
               {NAV_LINKS.map((link, i) => (
                 <motion.a
                   key={link.label}
                   href={link.href}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07 }}
+                  transition={{ delay: i * 0.06 }}
                   onClick={() => setMobileOpen(false)}
-                  className="font-syne font-bold text-3xl text-white/80 hover:text-white border-b border-white/5 pb-4"
+                  className="font-syne font-bold text-2xl text-white/80 hover:text-white border-b border-white/5 pb-4"
                 >
                   {link.label}
                 </motion.a>
               ))}
             </div>
+            {/* Free Consultation button — hidden on mobile (Book Call already in navbar) */}
             <motion.a
               href="https://calendly.com/djalifsr/thesunnahmarketing"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
               onClick={() => setMobileOpen(false)}
-              className="mt-10 shimmer-btn font-syne font-bold text-white text-center py-4 rounded-xl"
+              className="hidden lg:block mt-8 shimmer-btn font-syne font-bold text-white text-center py-4 rounded-xl"
             >
               Free Consultation
             </motion.a>
@@ -263,11 +305,140 @@ function Navbar() {
 
 // ── HERO ───────────────────────────────────────────────────────────────────
 function Hero() {
+  const isMobile = useIsMobile();
   const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 0.3], [0, -80]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const [playing, setPlaying] = useState(false);
+  const yDesktop = useTransform(scrollYProgress, [0, 0.3], [0, -80]);
+  const opacityDesktop = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
+  // Mobile Hero
+  if (isMobile) {
+    return (
+      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#050507] pt-24 pb-12">
+        {/* Lightweight static blobs */}
+        <div className="absolute top-1/4 right-0 w-64 h-64 rounded-full bg-[#1a6bff] blur-[80px] opacity-10 pointer-events-none" />
+        <div className="absolute bottom-1/3 left-0 w-48 h-48 rounded-full bg-[#00c6ff] blur-[60px] opacity-8 pointer-events-none" />
+
+        <div className="relative z-10 px-5 flex flex-col items-center text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="inline-flex items-center gap-2 border border-[#1a6bff]/30 bg-[#1a6bff]/10 px-3 py-1.5 rounded-full mb-5"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-[#00c6ff] animate-pulse" />
+            <span className="font-dm text-xs text-white/60 tracking-widest uppercase">
+              Halal Marketing Agency
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="font-syne font-black text-[1.6rem] leading-[1.2] tracking-tight mb-3"
+          >
+            <span className="text-white">
+              The Halal Marketing System Helping Ethical Businesses Scale Online
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="font-syne font-bold text-base gradient-text mb-5"
+          >
+            Scale Businesses The Halal Way
+          </motion.p>
+
+          {/* VSL — portrait, compact on mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6 }}
+            className="relative w-[200px] mb-6"
+          >
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#1a6bff]/40 via-[#00c6ff]/20 to-[#1a6bff]/40 rounded-2xl blur-md opacity-60" />
+            <div
+              className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14]"
+              style={{ aspectRatio: "9/16" }}
+            >
+              <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#1a6bff]/50 rounded-tl" />
+              <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#1a6bff]/50 rounded-tr" />
+              <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#1a6bff]/50 rounded-bl" />
+              <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#1a6bff]/50 rounded-br" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="w-14 h-14 rounded-full bg-[#1a6bff]/20 border-2 border-[#1a6bff]/60 flex items-center justify-center glow-blue">
+                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                </div>
+                <p className="font-syne font-bold text-white/60 text-xs text-center px-2">
+                  Watch Our Story
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="font-dm text-sm text-white/45 max-w-xs mx-auto mb-7 leading-relaxed"
+          >
+            A halal-focused Social Media Marketing agency built to help businesses
+            grow without compromising their deen.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex flex-col items-center gap-3 w-full max-w-xs"
+          >
+            <a
+              href="https://calendly.com/djalifsr/thesunnahmarketing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full shimmer-btn font-syne font-bold text-white py-4 rounded-xl flex items-center justify-center gap-2 text-sm"
+            >
+              Book Free Consultation
+              <ArrowRight className="w-4 h-4" />
+            </a>
+            <a
+              href="#services"
+              className="w-full font-dm font-medium text-white/50 py-3.5 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-sm"
+            >
+              <PlayCircle className="w-4 h-4" />
+              See Our Services
+            </a>
+          </motion.div>
+
+          {/* Trust badges */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="flex items-center justify-center gap-4 mt-8"
+          >
+            {[
+              { val: "17+", label: "Clients" },
+              { val: "3+", label: "Years" },
+              { val: "100%", label: "Halal" },
+            ].map((item) => (
+              <div key={item.label} className="flex flex-col items-center">
+                <span className="font-syne font-black text-lg gradient-text-blue">{item.val}</span>
+                <span className="font-dm text-[10px] text-white/30 uppercase tracking-wider">{item.label}</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
+  // Desktop Hero (original)
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050507] mt-40">
       <div className="absolute inset-0">
@@ -302,14 +473,20 @@ function Hero() {
         />
       ))}
 
-      <motion.div style={{ y, opacity }} className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+      <motion.div
+        style={{ y: yDesktop, opacity: opacityDesktop }}
+        className="relative z-10 max-w-5xl mx-auto px-6 text-center"
+      >
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="font-syne font-black text-2xl md:text-3xl lg:text-4xl leading-[1.15] tracking-tight mb-4 max-w-3xl mx-auto"
         >
-          <span className="block text-white">Give Me A Moment And I'll Reveal The Halal Marketing System Helping Ethical Businesses Scale Online — The Right Way.</span>
+          <span className="block text-white">
+            Give Me A Moment And I'll Reveal The Halal Marketing System Helping
+            Ethical Businesses Scale Online — The Right Way.
+          </span>
         </motion.h1>
 
         <motion.p
@@ -321,7 +498,6 @@ function Hero() {
           Scale Businesses The Halal Way
         </motion.p>
 
-         {/* VSL Video Placeholder */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -332,9 +508,7 @@ function Hero() {
           <div
             className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14] cursor-pointer group"
             style={{ aspectRatio: "9/16", maxHeight: "80vh" }}
-            onClick={() => setPlaying(!playing)}
           >
-            {/* Rough concrete/noise texture via repeating pattern */}
             <div
               className="absolute inset-0 opacity-20"
               style={{
@@ -342,17 +516,11 @@ function Hero() {
                 backgroundSize: "200px 200px",
               }}
             />
-
-            {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#1a6bff]/5 via-transparent to-[#00c6ff]/5" />
-
-            {/* Corner accents */}
             <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#1a6bff]/50 rounded-tl" />
             <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#1a6bff]/50 rounded-tr" />
             <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#1a6bff]/50 rounded-bl" />
             <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#1a6bff]/50 rounded-br" />
-
-            {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
               <motion.div
                 whileHover={{ scale: 1.1 }}
@@ -366,8 +534,6 @@ function Hero() {
                 <p className="font-dm text-xs text-white/30 mt-1">VSL coming soon — video will appear here</p>
               </div>
             </div>
-
-            {/* Bottom label */}
             <div className="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-black/60 to-transparent">
               <div className="flex items-center justify-between">
                 <span className="font-dm text-xs text-white/30 uppercase tracking-widest">The Sunnah Marketing</span>
@@ -383,7 +549,8 @@ function Hero() {
           transition={{ duration: 0.8, delay: 0.7 }}
           className="font-dm text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed"
         >
-          The Sunnah Marketing is a halal focused Social Media Marketing agency built to help businesses grow without compromising their deen.
+          The Sunnah Marketing is a halal focused Social Media Marketing agency
+          built to help businesses grow without compromising their deen.
         </motion.p>
 
         <motion.div
@@ -417,37 +584,47 @@ function Hero() {
 // ── WHO WE ARE ─────────────────────────────────────────────────────────────
 function WhoWeAreSection() {
   return (
-    <section id="about" className="py-32 bg-[#0a0a0f] relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full bg-[#1a6bff] blur-[180px] opacity-5" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-[#00c6ff] blur-[150px] opacity-4" />
+    <section id="about" className="py-16 md:py-32 bg-[#0a0a0f] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full bg-[#1a6bff] blur-[120px] md:blur-[180px] opacity-5" />
+        <div className="absolute bottom-0 right-0 w-[200px] md:w-[400px] h-[200px] md:h-[400px] rounded-full bg-[#00c6ff] blur-[100px] md:blur-[150px] opacity-4" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
           {/* Left — Text */}
           <div>
             <FadeIn>
-              <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">Who We Are</span>
+              <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+                Who We Are
+              </span>
             </FadeIn>
             <FadeIn delay={0.1}>
-              <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight mb-5">
+              <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight mb-4 md:mb-5">
                 Built on <span className="gradient-text">Deen &amp; Results</span>
               </h2>
             </FadeIn>
             <FadeIn delay={0.2}>
-              <p className="font-dm text-lg text-white/60 leading-relaxed mb-6">
-                The Sunnah Marketing is a halal focused Social Media Marketing agency built to help businesses grow without compromising their deen.
+              <p className="font-dm text-base md:text-lg text-white/60 leading-relaxed mb-5 md:mb-6">
+                The Sunnah Marketing is a halal focused Social Media Marketing agency
+                built to help businesses grow without compromising their deen.
               </p>
             </FadeIn>
             <FadeIn delay={0.3}>
-              <p className="font-dm text-base text-white/45 leading-relaxed mb-6">
-                Formerly known as <span className="text-[#00c6ff]/80 font-medium">Sunnahedits</span>, we evolved from video editing into a full-service marketing agency after seeing that content alone isn't enough.
+              <p className="font-dm text-sm md:text-base text-white/45 leading-relaxed mb-4 md:mb-6">
+                Formerly known as{" "}
+                <span className="text-[#00c6ff]/80 font-medium">Sunnahedits</span>, we
+                evolved from video editing into a full-service marketing agency after
+                seeing that content alone isn't enough.
               </p>
             </FadeIn>
             <FadeIn delay={0.4}>
-              <p className="font-dm text-base text-white/45 leading-relaxed mb-10">
-                Strategy, positioning, and systems are what create real results. We work with halal businesses worldwide to build trust-driven content, ethical growth systems, and marketing that brings leads and sales the right way — <em className="text-white/60 not-italic">bi idhnillah.</em>
+              <p className="font-dm text-sm md:text-base text-white/45 leading-relaxed mb-8 md:mb-10">
+                Strategy, positioning, and systems are what create real results. We
+                work with halal businesses worldwide to build trust-driven content,
+                ethical growth systems, and marketing that brings leads and sales the
+                right way —{" "}
+                <em className="text-white/60 not-italic">bi idhnillah.</em>
               </p>
             </FadeIn>
             <FadeIn delay={0.5}>
@@ -455,7 +632,7 @@ function WhoWeAreSection() {
                 href="https://calendly.com/djalifsr/thesunnahmarketing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 shimmer-btn font-syne font-bold text-white px-7 py-3.5 rounded-xl hover:shadow-[0_0_40px_rgba(26,107,255,0.4)] transition-all duration-300"
+                className="inline-flex items-center gap-2 shimmer-btn font-syne font-bold text-white px-6 md:px-7 py-3 md:py-3.5 rounded-xl hover:shadow-[0_0_40px_rgba(26,107,255,0.4)] transition-all duration-300 text-sm md:text-base"
               >
                 Work With Us
                 <ArrowRight className="w-4 h-4" />
@@ -463,8 +640,8 @@ function WhoWeAreSection() {
             </FadeIn>
           </div>
 
-          {/* Right — Stats / Cards */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Right — Stats */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
             {[
               { number: "17+", label: "Muslim Clients Served", icon: <Users className="w-5 h-5" /> },
               { number: "3+", label: "Years of Experience", icon: <Clock className="w-5 h-5" /> },
@@ -472,12 +649,14 @@ function WhoWeAreSection() {
               { number: "100%", label: "Halal Compliant Work", icon: <ShieldCheck className="w-5 h-5" /> },
             ].map((stat, i) => (
               <FadeIn key={stat.label} delay={0.15 + i * 0.1}>
-                <div className="card-glass p-6 h-full flex flex-col gap-3 border border-white/5 hover:border-[#1a6bff]/30 transition-all duration-300 group">
-                  <div className="w-10 h-10 bg-[#1a6bff]/10 border border-[#1a6bff]/20 flex items-center justify-center text-[#1a6bff] group-hover:bg-[#1a6bff]/20 transition-colors">
+                <div className="mobile-card p-5 md:p-6 h-full flex flex-col gap-2 md:gap-3 border border-white/5 hover:border-[#1a6bff]/30 transition-all duration-300 group rounded-xl md:rounded-none">
+                  <div className="w-9 h-9 md:w-10 md:h-10 bg-[#1a6bff]/10 border border-[#1a6bff]/20 flex items-center justify-center text-[#1a6bff] group-hover:bg-[#1a6bff]/20 transition-colors rounded-lg md:rounded-none">
                     {stat.icon}
                   </div>
-                  <p className="font-syne font-black text-4xl gradient-text-blue">{stat.number}</p>
-                  <p className="font-dm text-sm text-white/40 leading-snug">{stat.label}</p>
+                  <p className="font-syne font-black text-3xl md:text-4xl gradient-text-blue">
+                    {stat.number}
+                  </p>
+                  <p className="font-dm text-xs md:text-sm text-white/40 leading-snug">{stat.label}</p>
                 </div>
               </FadeIn>
             ))}
@@ -498,45 +677,43 @@ function WhyUsSection() {
   ];
 
   return (
-    <section id="why-us" className="py-32 bg-[#050507] relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#1a6bff] blur-[200px] opacity-[0.04]" />
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: "60px 60px",
-          }}
-        />
+    <section id="why-us" className="py-16 md:py-32 bg-[#050507] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[700px] h-[400px] md:h-[700px] rounded-full bg-[#1a6bff] blur-[150px] md:blur-[200px] opacity-[0.04]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
+      <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
+        <div className="text-center mb-12 md:mb-20">
           <FadeIn>
-            <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">Why Choose Us</span>
+            <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+              Why Choose Us
+            </span>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight">
+            <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight">
               100% Halal. <span className="gradient-text">100% Results.</span>
             </h2>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <p className="font-dm text-lg text-white/40 max-w-2xl mx-auto mt-6">
-              Unlike other agencies, we don't just avoid haram — we design strategies specifically for Muslim businesses.
+            <p className="font-dm text-base md:text-lg text-white/40 max-w-2xl mx-auto mt-4 md:mt-6">
+              Unlike other agencies, we don't just avoid haram — we design strategies
+              specifically for Muslim businesses.
             </p>
           </FadeIn>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
           {/* Checklist */}
-          <div className="space-y-5">
+          <div className="space-y-3 md:space-y-5">
             {points.map((point, i) => (
               <FadeIn key={i} delay={i * 0.1} direction="left">
-                <div className="flex items-start gap-4 p-5 card-glass border border-white/5 hover:border-[#1a6bff]/20 transition-all duration-300 group">
-                  <div className="w-8 h-8 bg-[#1a6bff]/10 border border-[#1a6bff]/30 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-[#1a6bff]/20 transition-colors">
+                <div className="flex items-start gap-3 md:gap-4 p-4 md:p-5 mobile-card border border-white/5 hover:border-[#1a6bff]/20 transition-all duration-300 group rounded-xl md:rounded-none">
+                  <div className="w-8 h-8 bg-[#1a6bff]/10 border border-[#1a6bff]/30 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-[#1a6bff]/20 transition-colors rounded-lg md:rounded-none">
                     <CheckCircle2 className="w-4 h-4 text-[#1a6bff]" />
                   </div>
-                  <p className="font-dm text-base text-white/70 leading-relaxed group-hover:text-white/90 transition-colors">{point}</p>
+                  <p className="font-dm text-sm md:text-base text-white/70 leading-relaxed group-hover:text-white/90 transition-colors">
+                    {point}
+                  </p>
                 </div>
               </FadeIn>
             ))}
@@ -544,19 +721,21 @@ function WhyUsSection() {
 
           {/* Statement card */}
           <FadeIn delay={0.3} direction="right">
-            <div className="relative">
+            <div className="relative mt-4 md:mt-0">
               <div className="absolute -inset-1 bg-gradient-to-br from-[#1a6bff]/30 to-[#00c6ff]/10 rounded-2xl blur-xl opacity-40" />
-              <div className="relative card-glass border border-[#1a6bff]/20 p-10 rounded-2xl">
-                <div className="w-12 h-12 bg-[#1a6bff]/10 border border-[#1a6bff]/30 flex items-center justify-center text-[#1a6bff] mb-8">
-                  <ShieldCheck className="w-6 h-6" />
+              <div className="relative mobile-card border border-[#1a6bff]/20 p-7 md:p-10 rounded-2xl">
+                <div className="w-11 h-11 md:w-12 md:h-12 bg-[#1a6bff]/10 border border-[#1a6bff]/30 flex items-center justify-center text-[#1a6bff] mb-6 md:mb-8 rounded-lg md:rounded-none">
+                  <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
-                <h3 className="font-syne font-black text-2xl text-white mb-5 leading-tight">
+                <h3 className="font-syne font-black text-xl md:text-2xl text-white mb-4 md:mb-5 leading-tight">
                   We don't compromise your deen for a few extra likes.
                 </h3>
-                <p className="font-dm text-base text-white/50 leading-relaxed mb-8">
-                  We build marketing systems that honour Allah (SWT) while growing your business. Every piece of content, every ad, every strategy — filtered through an Islamic lens before it reaches your audience.
+                <p className="font-dm text-sm md:text-base text-white/50 leading-relaxed mb-6 md:mb-8">
+                  We build marketing systems that honour Allah (SWT) while growing
+                  your business. Every piece of content, every ad, every strategy —
+                  filtered through an Islamic lens before it reaches your audience.
                 </p>
-                <div className="flex items-center gap-3 border-t border-white/10 pt-6">
+                <div className="flex items-center gap-3 border-t border-white/10 pt-5 md:pt-6">
                   <div className="w-8 h-8 overflow-hidden rounded-lg flex-shrink-0">
                     <img src="/icon.jpg" alt="TSM" className="w-full h-full object-cover" />
                   </div>
@@ -577,29 +756,57 @@ function WhyUsSection() {
 // ── SERVICES ───────────────────────────────────────────────────────────────
 function ServicesSection() {
   return (
-    <section id="services" className="py-32 bg-[#050507] relative">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-[#1a6bff] blur-[150px] opacity-5" />
+    <section id="services" className="py-16 md:py-32 bg-[#050507] relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full bg-[#1a6bff] blur-[100px] md:blur-[150px] opacity-5" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
+      <div className="max-w-7xl mx-auto px-5 md:px-6 relative z-10">
+        <div className="text-center mb-12 md:mb-20">
           <FadeIn>
-            <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">Our Services</span>
+            <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+              Our Services
+            </span>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight mb-5">
+            <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight mb-4 md:mb-5">
               <span className="gradient-text">What We Offer</span>
             </h2>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <p className="font-dm text-lg text-white/40 max-w-xl mx-auto">
-              Every service we offer is built around one goal: growing your business while staying true to your values.
+            <p className="font-dm text-sm md:text-lg text-white/40 max-w-xl mx-auto">
+              Every service we offer is built around one goal: growing your business
+              while staying true to your values.
             </p>
           </FadeIn>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
+        {/* Mobile: stacked cards with visible borders */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {SERVICES.map((service, i) => (
+            <FadeIn key={service.title} delay={i * 0.08}>
+              <div className="mobile-card p-6 rounded-2xl border border-white/8 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-[#1a6bff]/10 border border-[#1a6bff]/20 rounded-xl flex items-center justify-center text-[#1a6bff]">
+                    {service.icon}
+                  </div>
+                  <h3 className="font-syne font-bold text-base text-white">{service.title}</h3>
+                </div>
+                <p className="font-dm text-sm text-white/40 leading-relaxed mb-4">{service.desc}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {service.tags.map((tag) => (
+                    <span key={tag} className="font-dm text-xs text-[#00c6ff]/70 border border-[#00c6ff]/20 px-2 py-0.5 rounded-md">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        {/* Desktop: original grid */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
           {SERVICES.map((service, i) => (
             <FadeIn key={service.title} delay={i * 0.08} className="bg-[#050507]">
               <div className="card-glass-hover p-8 h-full group cursor-pointer border border-transparent hover:border-[#1a6bff]/20 transition-all duration-300">
@@ -631,40 +838,63 @@ function ServicesSection() {
 // ── PROCESS ────────────────────────────────────────────────────────────────
 function ProcessSection() {
   return (
-    <section id="process" className="py-32 bg-[#0a0a0f] relative">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-20">
+    <section id="process" className="py-16 md:py-32 bg-[#0a0a0f] relative">
+      <div className="max-w-7xl mx-auto px-5 md:px-6">
+        <div className="text-center mb-12 md:mb-20">
           <FadeIn>
-            <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">How We Work</span>
+            <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+              How We Work
+            </span>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight">
+            <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight">
               Our Proven <span className="gradient-text">5-Step Process</span>
             </h2>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <p className="font-dm text-base text-white/40 max-w-xl mx-auto mt-5">
+            <p className="font-dm text-sm md:text-base text-white/40 max-w-xl mx-auto mt-4 md:mt-5">
               Trusted by 17+ Muslim clients — from discovery to results in 30–90 days.
             </p>
           </FadeIn>
         </div>
 
-        {/* Steps — vertical timeline on mobile, horizontal on desktop */}
-        <div className="relative">
-          {/* Desktop connecting line */}
-          <div className="hidden lg:block absolute top-[2.25rem] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[#1a6bff]/30 to-transparent" />
+        {/* Mobile: vertical timeline */}
+        <div className="flex flex-col gap-0 md:hidden relative">
+          {/* Vertical line */}
+          <div className="absolute left-[1.4rem] top-8 bottom-8 w-px bg-gradient-to-b from-[#1a6bff]/40 via-[#1a6bff]/20 to-transparent" />
+          {PROCESS.map((step, i) => (
+            <FadeIn key={step.step} delay={i * 0.1}>
+              <div className="flex gap-4 pb-8 relative">
+                {/* Step circle */}
+                <div className="flex-shrink-0 w-11 h-11 bg-[#0a0a0f] border-2 border-[#1a6bff]/40 font-syne font-black text-[#1a6bff] text-xs flex items-center justify-center rounded-full z-10">
+                  {step.step}
+                </div>
+                <div className="pt-1 pb-2">
+                  <p className="font-dm text-xs text-[#00c6ff]/60 tracking-widest uppercase mb-1">
+                    {step.duration}
+                  </p>
+                  <h3 className="font-syne font-bold text-base text-white mb-1">{step.title}</h3>
+                  <p className="font-dm text-sm text-white/40 leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        {/* Desktop: horizontal */}
+        <div className="relative hidden md:block">
+          <div className="absolute top-[2.25rem] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[#1a6bff]/30 to-transparent" />
+          <div className="grid grid-cols-5 gap-8">
             {PROCESS.map((step, i) => (
               <FadeIn key={step.step} delay={i * 0.1}>
-                <div className="relative group flex flex-col gap-4 items-start lg:items-center lg:text-center">
-                  <div className="relative">
-                    <div className="w-[4.5rem] h-[4.5rem] bg-[#0a0a0f] border-2 border-[#1a6bff]/40 font-syne font-black text-[#1a6bff] text-sm flex items-center justify-center rounded-full group-hover:border-[#1a6bff] group-hover:bg-[#1a6bff]/10 transition-all duration-300 glow-blue">
-                      {step.step}
-                    </div>
+                <div className="relative group flex flex-col gap-4 items-center text-center">
+                  <div className="w-[4.5rem] h-[4.5rem] bg-[#0a0a0f] border-2 border-[#1a6bff]/40 font-syne font-black text-[#1a6bff] text-sm flex items-center justify-center rounded-full group-hover:border-[#1a6bff] group-hover:bg-[#1a6bff]/10 transition-all duration-300 glow-blue">
+                    {step.step}
                   </div>
                   <div>
-                    <p className="font-dm text-xs text-[#00c6ff]/60 tracking-widest uppercase mb-1">{step.duration}</p>
+                    <p className="font-dm text-xs text-[#00c6ff]/60 tracking-widest uppercase mb-1">
+                      {step.duration}
+                    </p>
                     <h3 className="font-syne font-bold text-lg text-white mb-2">{step.title}</h3>
                     <p className="font-dm text-sm text-white/40 leading-relaxed">{step.desc}</p>
                   </div>
@@ -676,19 +906,17 @@ function ProcessSection() {
 
         {/* Timeline callout */}
         <FadeIn delay={0.6}>
-          <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-center">
-            <div className="flex items-center gap-3 border border-[#1a6bff]/20 bg-[#1a6bff]/5 px-6 py-3 rounded-full">
-              <Clock className="w-4 h-4 text-[#00c6ff]" />
-              <span className="font-dm text-sm text-white/60">See results in <span className="text-white font-medium">30–60 days</span></span>
-            </div>
-            <div className="flex items-center gap-3 border border-[#1a6bff]/20 bg-[#1a6bff]/5 px-6 py-3 rounded-full">
-              <BarChart3 className="w-4 h-4 text-[#00c6ff]" />
-              <span className="font-dm text-sm text-white/60">Full momentum by <span className="text-white font-medium">90 days</span></span>
-            </div>
-            <div className="flex items-center gap-3 border border-[#1a6bff]/20 bg-[#1a6bff]/5 px-6 py-3 rounded-full">
-              <Users className="w-4 h-4 text-[#00c6ff]" />
-              <span className="font-dm text-sm text-white/60">Trusted by <span className="text-white font-medium">17+ Muslim clients</span></span>
-            </div>
+          <div className="mt-10 md:mt-16 flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 text-center">
+            {[
+              { icon: <Clock className="w-4 h-4 text-[#00c6ff]" />, text: <>See results in <span className="text-white font-medium">30–60 days</span></> },
+              { icon: <BarChart3 className="w-4 h-4 text-[#00c6ff]" />, text: <>Full momentum by <span className="text-white font-medium">90 days</span></> },
+              { icon: <Users className="w-4 h-4 text-[#00c6ff]" />, text: <>Trusted by <span className="text-white font-medium">17+ Muslim clients</span></> },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 border border-[#1a6bff]/20 bg-[#1a6bff]/5 px-4 md:px-6 py-2.5 md:py-3 rounded-full w-full sm:w-auto justify-center">
+                {item.icon}
+                <span className="font-dm text-xs md:text-sm text-white/60">{item.text}</span>
+              </div>
+            ))}
           </div>
         </FadeIn>
       </div>
@@ -697,7 +925,15 @@ function ProcessSection() {
 }
 
 // ── TESTIMONIALS ───────────────────────────────────────────────────────────
-function VideoCard({ src, label }: { src: string; label: string }) {
+function VideoCard({
+  src,
+  label,
+  className = "",
+}: {
+  src: string;
+  label: string;
+  className?: string;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -715,12 +951,11 @@ function VideoCard({ src, label }: { src: string; label: string }) {
 
   return (
     <div
-      className="relative overflow-hidden border border-white/8 group cursor-pointer hover:border-[#1a6bff]/40 transition-all duration-300 w-full"
+      className={`relative overflow-hidden border border-white/8 group cursor-pointer hover:border-[#1a6bff]/40 transition-all duration-300 ${className}`}
       style={{ aspectRatio: "9/16" }}
       onClick={togglePlay}
     >
       <div className="absolute inset-0 bg-[#0d0d18]" />
-
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
@@ -729,8 +964,6 @@ function VideoCard({ src, label }: { src: string; label: string }) {
         preload="metadata"
         onEnded={() => setIsPlaying(false)}
       />
-
-      {/* Play/Pause overlay */}
       <div
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
           isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
@@ -738,22 +971,19 @@ function VideoCard({ src, label }: { src: string; label: string }) {
         style={{ background: isPlaying ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.45)" }}
       >
         <motion.div
-          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.93 }}
-          className="w-16 h-16 rounded-full bg-[#1a6bff]/80 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm shadow-[0_0_30px_rgba(26,107,255,0.5)]"
+          className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#1a6bff]/80 border-2 border-white/30 flex items-center justify-center shadow-[0_0_30px_rgba(26,107,255,0.5)]"
         >
           {isPlaying ? (
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
               <rect x="6" y="4" width="4" height="16" rx="1" />
               <rect x="14" y="4" width="4" height="16" rx="1" />
             </svg>
           ) : (
-            <Play className="w-6 h-6 text-white fill-white ml-1" />
+            <Play className="w-5 h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
           )}
         </motion.div>
       </div>
-
-      {/* Label bottom */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <p className="font-dm text-xs text-white/70">{label}</p>
       </div>
@@ -777,28 +1007,63 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section id="testimonials" className="py-32 bg-[#050507] relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[#1a6bff] blur-[150px] opacity-5" />
+    <section id="testimonials" className="py-16 md:py-32 bg-[#050507] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] md:w-[800px] h-[300px] md:h-[400px] rounded-full bg-[#1a6bff] blur-[100px] md:blur-[150px] opacity-5" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-10 md:mb-20 px-5 md:px-6">
           <FadeIn>
-            <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">Client Love</span>
+            <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+              Client Love
+            </span>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight">
+            <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight">
               What Our Clients <span className="gradient-text">Say About Us</span>
             </h2>
           </FadeIn>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+        {/* Mobile: horizontal scroll snap */}
+        <div className="md:hidden">
+          <div className="mobile-media-scroll">
+            <div className="mobile-media-card">
+              <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
+            </div>
+            {photoItems.map((item, i) => (
+              <div
+                key={i}
+                className="mobile-media-card relative overflow-hidden border border-white/8"
+                style={{ aspectRatio: "9/16" }}
+              >
+                <div className="absolute inset-0 bg-[#13131f]" />
+                <img
+                  className="absolute inset-0 w-full h-full object-cover"
+                  src={item.src}
+                  alt={item.label}
+                  loading="lazy"
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                  <p className="font-dm text-xs text-white/60">{item.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Scroll hint */}
+          <div className="flex items-center justify-center gap-2 mt-3 px-5">
+            <div className="h-px flex-1 bg-white/5" />
+            <p className="font-dm text-xs text-white/20 tracking-widest uppercase">swipe to explore</p>
+            <div className="h-px flex-1 bg-white/5" />
+          </div>
+        </div>
+
+        {/* Desktop: original grid */}
+        <div className="hidden md:grid grid-cols-5 gap-3 mb-5 px-6">
           <FadeIn delay={0}>
             <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
           </FadeIn>
-
           {photoItems.map((item, i) => (
             <FadeIn key={i} delay={(i + 1) * 0.07}>
               <div
@@ -821,30 +1086,59 @@ function TestimonialsSection() {
         </div>
 
         <FadeIn delay={0.15}>
-          <p className="font-dm text-base text-white/40 max-w-xl mx-auto mt-5 mb-20">
-            Our client <span className="text-white font-medium">Abdullah Ghaffar</span> went from{" "}
-            <span className="text-[#1a6bff] font-medium">50k → 80k followers</span> on Instagram.
+          <p className="font-dm text-sm md:text-base text-white/40 max-w-xl mx-auto mt-5 mb-12 md:mb-20 px-5 md:px-6 text-center">
+            Our client{" "}
+            <span className="text-white font-medium">Abdullah Ghaffar</span> went
+            from{" "}
+            <span className="text-[#1a6bff] font-medium">50k → 80k followers</span>{" "}
+            on Instagram.
           </p>
         </FadeIn>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
-          {TESTIMONIALS.map((t, i) => (
-            <FadeIn key={t.name} delay={i * 0.07}>
-              <div
-                className="bg-[#050507] p-6 cursor-pointer transition-all duration-300 h-full"
-                onClick={() => setActive(i)}
-              >
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3 h-3 fill-[#1a6bff] text-[#1a6bff]" />
-                  ))}
+        {/* Text testimonials */}
+        <div className="mx-5 md:mx-6">
+          {/* Mobile: stacked */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {TESTIMONIALS.map((t, i) => (
+              <FadeIn key={t.name} delay={i * 0.07}>
+                <div className="mobile-card p-5 rounded-2xl border border-white/8">
+                  <div className="flex items-center gap-1 mb-2.5">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="w-3 h-3 fill-[#1a6bff] text-[#1a6bff]" />
+                    ))}
+                  </div>
+                  <p className="font-dm text-sm text-white/60 leading-relaxed mb-3">"{t.text}"</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-[#1a6bff]/20 border border-[#1a6bff]/30 flex items-center justify-center">
+                      <span className="font-syne font-bold text-[#1a6bff] text-xs">{t.name[0]}</span>
+                    </div>
+                    <div>
+                      <p className="font-syne font-bold text-white text-xs">{t.name}</p>
+                      <p className="font-dm text-xs text-white/30">{t.role}</p>
+                    </div>
+                  </div>
                 </div>
-                <p className="font-dm text-sm text-white/50 leading-relaxed mb-4 line-clamp-3">"{t.text}"</p>
-                <p className="font-syne font-bold text-white text-sm">{t.name}</p>
-                <p className="font-dm text-xs text-white/30">{t.role}</p>
-              </div>
-            </FadeIn>
-          ))}
+              </FadeIn>
+            ))}
+          </div>
+
+          {/* Desktop: grid */}
+          <div className="hidden md:grid grid-cols-3 gap-px bg-white/5">
+            {TESTIMONIALS.map((t, i) => (
+              <FadeIn key={t.name} delay={i * 0.07}>
+                <div className="bg-[#050507] p-6 h-full">
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="w-3 h-3 fill-[#1a6bff] text-[#1a6bff]" />
+                    ))}
+                  </div>
+                  <p className="font-dm text-sm text-white/50 leading-relaxed mb-4 line-clamp-3">"{t.text}"</p>
+                  <p className="font-syne font-bold text-white text-sm">{t.name}</p>
+                  <p className="font-dm text-xs text-white/30">{t.role}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -856,28 +1150,31 @@ function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-32 bg-[#0a0a0f] relative">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-20">
+    <section id="faq" className="py-16 md:py-32 bg-[#0a0a0f] relative">
+      <div className="max-w-4xl mx-auto px-5 md:px-6">
+        <div className="text-center mb-10 md:mb-20">
           <FadeIn>
-            <span className="font-dm text-sm text-[#00c6ff] tracking-widest uppercase">Got Questions?</span>
+            <span className="font-dm text-xs md:text-sm text-[#00c6ff] tracking-widest uppercase">
+              Got Questions?
+            </span>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="font-syne font-black text-4xl md:text-5xl text-white mt-4 leading-tight">
+            <h2 className="font-syne font-black text-3xl md:text-5xl text-white mt-3 md:mt-4 leading-tight">
               Frequently Asked <span className="gradient-text">Questions</span>
             </h2>
           </FadeIn>
         </div>
 
-        <div className="space-y-px bg-white/5">
+        <div className="flex flex-col gap-2 md:gap-0 md:space-y-px md:bg-white/5">
           {FAQS.map((faq, i) => (
             <FadeIn key={i} delay={i * 0.05}>
-              <div className="bg-[#0a0a0f]">
+              {/* Mobile: card style */}
+              <div className="mobile-card md:bg-[#0a0a0f] rounded-xl md:rounded-none border border-white/8 md:border-0 overflow-hidden">
                 <button
                   onClick={() => setOpen(open === i ? null : i)}
-                  className="w-full flex items-center justify-between p-7 text-left hover:bg-[#050507] transition-colors group"
+                  className="w-full flex items-center justify-between p-5 md:p-7 text-left hover:bg-[#050507]/50 md:hover:bg-[#050507] transition-colors group"
                 >
-                  <span className="font-syne font-bold text-lg text-white/80 group-hover:text-white pr-4">
+                  <span className="font-syne font-bold text-base md:text-lg text-white/80 group-hover:text-white pr-3">
                     {faq.q}
                   </span>
                   <motion.div
@@ -885,7 +1182,11 @@ function FAQSection() {
                     transition={{ duration: 0.2 }}
                     className="flex-shrink-0"
                   >
-                    <ChevronRight className={`w-5 h-5 transition-colors ${open === i ? "text-[#1a6bff]" : "text-white/30"}`} />
+                    <ChevronRight
+                      className={`w-5 h-5 transition-colors ${
+                        open === i ? "text-[#1a6bff]" : "text-white/30"
+                      }`}
+                    />
                   </motion.div>
                 </button>
                 <AnimatePresence>
@@ -897,7 +1198,7 @@ function FAQSection() {
                       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <p className="font-dm text-base text-white/40 leading-relaxed px-7 pb-7">
+                      <p className="font-dm text-sm md:text-base text-white/40 leading-relaxed px-5 md:px-7 pb-5 md:pb-7">
                         {faq.a}
                       </p>
                     </motion.div>
@@ -939,54 +1240,65 @@ function CTABanner() {
   ];
 
   return (
-    <section className="py-32 bg-[#050507] relative overflow-hidden">
-      <div className="absolute inset-0">
+    <section className="py-16 md:py-32 bg-[#050507] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a6bff]/10 via-transparent to-[#00c6ff]/5" />
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-          className="absolute -right-64 -top-64 w-[600px] h-[600px] border border-[#1a6bff]/5 rounded-full"
-        />
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-          className="absolute -left-32 -bottom-32 w-[400px] h-[400px] border border-[#00c6ff]/5 rounded-full"
-        />
+        {/* Only show rotating rings on desktop */}
+        <div className="hidden md:block">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+            className="absolute -right-64 -top-64 w-[600px] h-[600px] border border-[#1a6bff]/5 rounded-full"
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+            className="absolute -left-32 -bottom-32 w-[400px] h-[400px] border border-[#00c6ff]/5 rounded-full"
+          />
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+      <div className="max-w-5xl mx-auto px-5 md:px-6 text-center relative z-10">
         <FadeIn>
-          <div className="inline-flex items-center gap-2 border border-[#1a6bff]/30 bg-[#1a6bff]/10 px-4 py-2 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 border border-[#1a6bff]/30 bg-[#1a6bff]/10 px-3 md:px-4 py-1.5 md:py-2 rounded-full mb-6 md:mb-8">
             <CalendarCheck className="w-3.5 h-3.5 text-[#00c6ff]" />
-            <span className="font-dm text-sm text-white/70">Limited spots available this quarter</span>
+            <span className="font-dm text-xs md:text-sm text-white/70">
+              Limited spots available this quarter
+            </span>
           </div>
         </FadeIn>
         <FadeIn delay={0.1}>
-          <h2 className="font-syne font-black text-4xl md:text-6xl text-white mt-4 leading-tight mb-8">
-            Ready to Scale Your<br />
+          <h2 className="font-syne font-black text-3xl md:text-6xl text-white mt-4 leading-tight mb-5 md:mb-8">
+            Ready to Scale Your
+            <br />
             <span className="gradient-text">Business the Halal Way?</span>
           </h2>
         </FadeIn>
         <FadeIn delay={0.2}>
-          <p className="font-dm text-xl text-white/40 max-w-2xl mx-auto mb-16 leading-relaxed">
-            Book a free 30-minute discovery call. No commitments. Just a clear roadmap for growing your business the halal way.
+          <p className="font-dm text-base md:text-xl text-white/40 max-w-2xl mx-auto mb-10 md:mb-16 leading-relaxed">
+            Book a free 30-minute discovery call. No commitments. Just a clear
+            roadmap for growing your business the halal way.
           </p>
         </FadeIn>
 
         {/* 3-step visual */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-10 md:mb-14">
           {steps.map((step, i) => (
             <FadeIn key={i} delay={0.2 + i * 0.1}>
-              <div className="card-glass border border-white/8 p-7 text-left relative hover:border-[#1a6bff]/30 transition-all duration-300 group h-full">
-                <span className="font-syne font-black text-5xl text-[#1a6bff]/20 group-hover:text-[#1a6bff]/30 transition-colors leading-none">{step.num}</span>
-                <h4 className="font-syne font-bold text-white text-base mt-3 mb-2 leading-snug">{step.label}</h4>
+              <div className="mobile-card border border-white/8 p-5 md:p-7 text-left rounded-xl md:rounded-none hover:border-[#1a6bff]/30 transition-all duration-300 group h-full">
+                <span className="font-syne font-black text-4xl md:text-5xl text-[#1a6bff]/20 group-hover:text-[#1a6bff]/30 transition-colors leading-none">
+                  {step.num}
+                </span>
+                <h4 className="font-syne font-bold text-white text-sm md:text-base mt-2 md:mt-3 mb-1.5 md:mb-2 leading-snug">
+                  {step.label}
+                </h4>
                 <p className="font-dm text-sm text-white/35 leading-relaxed">{step.sub}</p>
                 {step.href && (
                   <a
                     href={step.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-4 font-dm text-sm text-[#1a6bff] hover:text-[#00c6ff] transition-colors"
+                    className="inline-flex items-center gap-1 mt-3 md:mt-4 font-dm text-sm text-[#1a6bff] hover:text-[#00c6ff] transition-colors"
                   >
                     {step.cta}
                   </a>
@@ -1002,10 +1314,10 @@ function CTABanner() {
               href="https://calendly.com/djalifsr/thesunnahmarketing"
               target="_blank"
               rel="noopener noreferrer"
-              className="group shimmer-btn font-syne font-bold text-white px-10 py-5 rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_60px_rgba(26,107,255,0.4)] transition-all duration-300 text-lg"
+              className="group shimmer-btn font-syne font-bold text-white px-8 md:px-10 py-4 md:py-5 rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_60px_rgba(26,107,255,0.4)] transition-all duration-300 text-base md:text-lg"
             >
               Book Free Discovery Call
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
             </a>
           </div>
         </FadeIn>
@@ -1018,31 +1330,35 @@ function CTABanner() {
 function Footer() {
   return (
     <footer className="bg-[#0a0a0f] border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="max-w-7xl mx-auto px-5 md:px-6">
+        <div className="py-12 md:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 overflow-hidden rounded-lg flex-shrink-0">
+            <div className="flex items-center gap-3 mb-5 md:mb-6">
+              <div className="w-9 h-9 md:w-10 md:h-10 overflow-hidden rounded-lg flex-shrink-0">
                 <img src="/icon.jpg" alt="TSM Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-syne font-bold text-white text-sm">The Sunnah Marketing</p>
-                <p className="font-dm text-[10px] text-white/40 tracking-widest uppercase">Halal Marketing Agency</p>
+                <p className="font-dm text-[10px] text-white/40 tracking-widest uppercase">
+                  Halal Marketing Agency
+                </p>
               </div>
             </div>
-            <p className="font-dm text-sm text-white/35 leading-relaxed max-w-sm mb-8">
-              The world's premier halal digital marketing agency. We help Muslim-owned businesses and halal brands grow globally with ethical, results-driven marketing — bi idhnillah.
+            <p className="font-dm text-sm text-white/35 leading-relaxed max-w-sm mb-7 md:mb-8">
+              The world's premier halal digital marketing agency. We help Muslim-owned
+              businesses and halal brands grow globally with ethical, results-driven
+              marketing — bi idhnillah.
             </p>
-            <div className="space-y-6 mb-10">
+            <div className="space-y-4 md:space-y-6 mb-8 md:mb-10">
               {[
-                { icon: <Mail className="w-5 h-5" />, label: "Email", value: "djalifsr@gmail.com" },
-                { icon: <Phone className="w-5 h-5" />, label: "WhatsApp", value: "(+62) 813-3473-0675" },
-                { icon: <MapPin className="w-5 h-5" />, label: "Base", value: "Indonesia (Serving Global)" },
+                { icon: <Mail className="w-4 h-4 md:w-5 md:h-5" />, label: "Email", value: "djalifsr@gmail.com" },
+                { icon: <Phone className="w-4 h-4 md:w-5 md:h-5" />, label: "WhatsApp", value: "(+62) 813-3473-0675" },
+                { icon: <MapPin className="w-4 h-4 md:w-5 md:h-5" />, label: "Base", value: "Indonesia (Serving Global)" },
               ].map((item, i) => (
                 <FadeIn key={item.label} delay={0.3 + i * 0.1} direction="left">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-[#1a6bff]/10 flex items-center justify-center text-[#1a6bff] flex-shrink-0">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-9 h-9 md:w-10 md:h-10 bg-[#1a6bff]/10 flex items-center justify-center text-[#1a6bff] flex-shrink-0 rounded-lg md:rounded-none">
                       {item.icon}
                     </div>
                     <div>
@@ -1058,7 +1374,7 @@ function Footer() {
                 href="https://www.youtube.com/@dejavascales"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300"
+                className="w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300 rounded-lg md:rounded-none"
               >
                 <Youtube className="w-4 h-4" />
               </a>
@@ -1066,7 +1382,7 @@ function Footer() {
                 href="https://instagram.com/thesunnahmarketing/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300"
+                className="w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300 rounded-lg md:rounded-none"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -1075,23 +1391,30 @@ function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="font-syne font-bold text-white text-sm mb-6 uppercase tracking-widest">Services</h4>
+            <h4 className="font-syne font-bold text-white text-sm mb-5 md:mb-6 uppercase tracking-widest">
+              Services
+            </h4>
             <ul className="space-y-3">
-              {[
-                "Social Media Marketing",
-                "Video Editing",
-                "High Converting Website"
-              ].map((item) => (
-                <li key={item}>
-                  <a href="#services" className="font-dm text-sm text-white/35 hover:text-white transition-colors">{item}</a>
-                </li>
-              ))}
+              {["Social Media Marketing", "Video Editing", "High Converting Website"].map(
+                (item) => (
+                  <li key={item}>
+                    <a
+                      href="#services"
+                      className="font-dm text-sm text-white/35 hover:text-white transition-colors"
+                    >
+                      {item}
+                    </a>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h4 className="font-syne font-bold text-white text-sm mb-6 uppercase tracking-widest">Company</h4>
+            <h4 className="font-syne font-bold text-white text-sm mb-5 md:mb-6 uppercase tracking-widest">
+              Company
+            </h4>
             <ul className="space-y-3">
               {[
                 { label: "About Us", href: "#about" },
@@ -1116,13 +1439,17 @@ function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-white/5 py-5 md:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4">
           <p className="font-dm text-xs text-white/20">
             © {new Date().getFullYear()} The Sunnah Marketing. All rights reserved.
           </p>
-          <div className="flex gap-6">
+          <div className="flex gap-5 md:gap-6">
             {["Privacy Policy", "Terms of Service"].map((item) => (
-              <a key={item} href="#" className="font-dm text-xs text-white/20 hover:text-white/50 transition-colors">
+              <a
+                key={item}
+                href="#"
+                className="font-dm text-xs text-white/20 hover:text-white/50 transition-colors"
+              >
                 {item}
               </a>
             ))}
@@ -1138,7 +1465,7 @@ function ScrollToTop() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const fn = () => setVisible(window.scrollY > 800);
-    window.addEventListener("scroll", fn);
+    window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
@@ -1150,23 +1477,29 @@ function ScrollToTop() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 shimmer-btn flex items-center justify-center text-white hover:shadow-[0_0_20px_rgba(26,107,255,0.5)] transition-all duration-300"
+          className="fixed bottom-6 right-5 md:bottom-8 md:right-8 z-50 w-11 h-11 md:w-12 md:h-12 shimmer-btn flex items-center justify-center text-white hover:shadow-[0_0_20px_rgba(26,107,255,0.5)] transition-all duration-300 rounded-xl"
         >
-          <ChevronDown className="w-5 h-5 rotate-180" />
+          <ChevronDown className="w-4 h-4 md:w-5 md:h-5 rotate-180" />
         </motion.button>
       )}
     </AnimatePresence>
   );
 }
 
-// ── CURSOR SPOTLIGHT ────────────────────────────────────────────────────────
+// ── CURSOR SPOTLIGHT (desktop only) ─────────────────────────────────────────
 function CursorSpotlight() {
+  const isMobile = useIsMobile();
   const [pos, setPos] = useState({ x: -200, y: -200 });
+
   useEffect(() => {
+    if (isMobile) return;
     const fn = (e: MouseEvent) => setPos({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", fn);
     return () => window.removeEventListener("mousemove", fn);
-  }, []);
+  }, [isMobile]);
+
+  if (isMobile) return null;
+
   return (
     <div
       className="fixed pointer-events-none z-50 w-[600px] h-[600px] rounded-full"

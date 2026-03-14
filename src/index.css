@@ -19,6 +19,7 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent; /* remove tap flash on mobile */
 }
 
 body {
@@ -28,19 +29,22 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Better touch scrolling */
+  -webkit-overflow-scrolling: touch;
 }
 
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0a0a0f;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1a6bff;
-  border-radius: 2px;
+/* ── SCROLLBAR (desktop only) ─────────────────────────────────── */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0f;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1a6bff;
+    border-radius: 2px;
+  }
 }
 
 ::selection {
@@ -48,14 +52,15 @@ body {
   color: #fff;
 }
 
+/* ── FONTS ────────────────────────────────────────────────────── */
 .font-syne {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
-
 .font-dm {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* ── GRADIENTS ────────────────────────────────────────────────── */
 .gradient-text {
   background: linear-gradient(135deg, #ffffff 0%, #a0c4ff 50%, #00c6ff 100%);
   -webkit-background-clip: text;
@@ -70,30 +75,38 @@ body {
   background-clip: text;
 }
 
+/* ── GLOW ─────────────────────────────────────────────────────── */
 .glow-blue {
   box-shadow: 0 0 40px rgba(26, 107, 255, 0.3), 0 0 80px rgba(26, 107, 255, 0.1);
 }
-
 .glow-text {
   text-shadow: 0 0 40px rgba(26, 107, 255, 0.5);
 }
 
+/* ── GLASS CARDS ──────────────────────────────────────────────── */
 .card-glass {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .card-glass-hover {
   transition: all 0.3s ease;
 }
-
 .card-glass-hover:hover {
   background: rgba(26, 107, 255, 0.08);
   border-color: rgba(26, 107, 255, 0.3);
   transform: translateY(-4px);
 }
 
+/* Mobile card: no expensive backdrop-filter */
+.mobile-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── NOISE BACKGROUND ─────────────────────────────────────────── */
 .noise-bg::before {
   content: '';
   position: fixed;
@@ -104,32 +117,36 @@ body {
   opacity: 0.4;
 }
 
+/* ── SECTION DIVIDER ──────────────────────────────────────────── */
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(26, 107, 255, 0.3), transparent);
 }
 
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.marquee-track {
-  animation: marquee 20s linear infinite;
-}
-
+/* ── SHIMMER BUTTON ───────────────────────────────────────────── */
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
 .shimmer-btn {
-  background: linear-gradient(90deg, #1a6bff 0%, #00c6ff 25%, #1a6bff 50%, #00c6ff 75%, #1a6bff 100%);
+  background: linear-gradient(
+    90deg,
+    #1a6bff 0%,
+    #00c6ff 25%,
+    #1a6bff 50%,
+    #00c6ff 75%,
+    #1a6bff 100%
+  );
   background-size: 200% auto;
   animation: shimmer 3s linear infinite;
   border-radius: 12px;
+  /* GPU acceleration */
+  transform: translateZ(0);
+  will-change: background-position;
 }
 
+/* ── ANIMATED BORDER ──────────────────────────────────────────── */
 @keyframes borderRotate {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -139,7 +156,6 @@ body {
 .animated-border {
   position: relative;
 }
-
 .animated-border::before {
   content: '';
   position: absolute;
@@ -151,7 +167,86 @@ body {
   z-index: -1;
 }
 
+/* ── COUNTER ──────────────────────────────────────────────────── */
 .counter-number {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
+}
+
+/* ── MOBILE HORIZONTAL SCROLL (testimonials) ─────────────────── */
+.mobile-media-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  gap: 12px;
+  padding: 0 20px 16px;
+  margin: 0 0 4px;
+}
+
+.mobile-media-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-media-card {
+  flex-shrink: 0;
+  width: 62vw;
+  scroll-snap-align: start;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ── MOBILE PERFORMANCE OVERRIDES ────────────────────────────── */
+@media (max-width: 767px) {
+  /* Remove expensive backdrop blur on mobile — huge GPU win */
+  .card-glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* Tone down noise overlay (SVG filter is GPU heavy) */
+  .noise-bg::before {
+    display: none;
+  }
+
+  /* Reduce glow intensity on mobile */
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(26, 107, 255, 0.2);
+  }
+
+  /* Better touch targets */
+  a, button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Prevent layout shift during animations */
+  .section-divider {
+    contain: layout;
+  }
+
+  /* Prevent overscroll bounce from causing jank */
+  main {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ── REDUCED MOTION ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-btn {
+    animation: none;
+    background: #1a6bff;
+  }
+  .animated-border::before {
+    animation: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
