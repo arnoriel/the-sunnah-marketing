@@ -319,28 +319,16 @@ function Hero() {
         <div className="absolute bottom-1/3 left-0 w-48 h-48 rounded-full bg-[#00c6ff] blur-[60px] opacity-8 pointer-events-none" />
 
         <div className="relative z-10 px-5 flex flex-col items-center text-center">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 border border-[#1a6bff]/30 bg-[#1a6bff]/10 px-3 py-1.5 rounded-full mb-5"
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00c6ff] animate-pulse" />
-            <span className="font-dm text-xs text-white/60 tracking-widest uppercase">
-              Halal Marketing Agency
-            </span>
-          </motion.div>
 
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="font-syne font-black text-[1.6rem] leading-[1.2] tracking-tight mb-3"
+            className="font-syne font-black text-[1.3rem] leading-[1.2] tracking-tight mb-3"
           >
             <span className="text-white">
-              The Halal Marketing System Helping Ethical Businesses Scale Online
+              Give Me 3 Minutes And I'll Show You How Muslim Business Owners Are Finally Scaling And Growing Online Without Selling Their Soul To Do It.
             </span>
           </motion.h1>
 
@@ -353,30 +341,26 @@ function Hero() {
             Scale Businesses The Halal Way
           </motion.p>
 
-          {/* VSL — portrait, compact on mobile */}
+          {/* VSL — YouTube embed, landscape */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.6 }}
-            className="relative w-[200px] mb-6"
+            className="relative w-full max-w-sm mb-6"
           >
             <div className="absolute -inset-1 bg-gradient-to-r from-[#1a6bff]/40 via-[#00c6ff]/20 to-[#1a6bff]/40 rounded-2xl blur-md opacity-60" />
             <div
               className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14]"
-              style={{ aspectRatio: "9/16" }}
+              style={{ aspectRatio: "16/9" }}
             >
-              <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#1a6bff]/50 rounded-tl" />
-              <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#1a6bff]/50 rounded-tr" />
-              <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#1a6bff]/50 rounded-bl" />
-              <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#1a6bff]/50 rounded-br" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-[#1a6bff]/20 border-2 border-[#1a6bff]/60 flex items-center justify-center glow-blue">
-                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-                </div>
-                <p className="font-syne font-bold text-white/60 text-xs text-center px-2">
-                  Watch Our Story
-                </p>
-              </div>
+              <iframe
+                src="https://www.youtube.com/embed/FOup6vHkTyY?rel=0&modestbranding=1"
+                title="The Sunnah Marketing VSL"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 0 }}
+              />
             </div>
           </motion.div>
 
@@ -438,7 +422,7 @@ function Hero() {
     );
   }
 
-  // Desktop Hero (original)
+  // Desktop Hero
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050507] mt-40">
       <div className="absolute inset-0">
@@ -484,8 +468,7 @@ function Hero() {
           className="font-syne font-black text-2xl md:text-3xl lg:text-4xl leading-[1.15] tracking-tight mb-4 max-w-3xl mx-auto"
         >
           <span className="block text-white">
-            Give Me A Moment And I'll Reveal The Halal Marketing System Helping
-            Ethical Businesses Scale Online — The Right Way.
+            Give Me 3 Minutes And I'll Show You How Muslim Business Owners Are Finally Scaling And Growing Online Without Selling Their Soul To Do It.
           </span>
         </motion.h1>
 
@@ -498,48 +481,29 @@ function Hero() {
           Scale Businesses The Halal Way
         </motion.p>
 
+        {/* VSL — YouTube embed, landscape */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          className="relative max-w-sm mx-auto mb-10"
+          className="relative max-w-3xl mx-auto mb-10"
         >
+          {/* Glow border */}
           <div className="absolute -inset-1 bg-gradient-to-r from-[#1a6bff]/40 via-[#00c6ff]/20 to-[#1a6bff]/40 rounded-2xl blur-lg opacity-60" />
+
+          {/* Video container — aspect ratio 16:9 */}
           <div
-            className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14] cursor-pointer group"
-            style={{ aspectRatio: "9/16", maxHeight: "80vh" }}
+            className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14]"
+            style={{ aspectRatio: "16/9" }}
           >
-            <div
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-                backgroundSize: "200px 200px",
-              }}
+            <iframe
+              src="https://www.youtube.com/embed/FOup6vHkTyY?rel=0&modestbranding=1"
+              title="The Sunnah Marketing VSL"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+              style={{ border: 0 }}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a6bff]/5 via-transparent to-[#00c6ff]/5" />
-            <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#1a6bff]/50 rounded-tl" />
-            <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#1a6bff]/50 rounded-tr" />
-            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#1a6bff]/50 rounded-bl" />
-            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#1a6bff]/50 rounded-br" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-20 h-20 rounded-full bg-[#1a6bff]/20 border-2 border-[#1a6bff]/60 flex items-center justify-center backdrop-blur-sm group-hover:bg-[#1a6bff]/30 transition-all duration-300 glow-blue"
-              >
-                <Play className="w-8 h-8 text-white fill-white ml-1" />
-              </motion.div>
-              <div className="text-center">
-                <p className="font-syne font-bold text-white/70 text-base tracking-wide">Watch Our Story</p>
-                <p className="font-dm text-xs text-white/30 mt-1">VSL coming soon — video will appear here</p>
-              </div>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-black/60 to-transparent">
-              <div className="flex items-center justify-between">
-                <span className="font-dm text-xs text-white/30 uppercase tracking-widest">The Sunnah Marketing</span>
-                <span className="font-dm text-xs text-[#00c6ff]/60">16:9 Video</span>
-              </div>
-            </div>
           </div>
         </motion.div>
 
