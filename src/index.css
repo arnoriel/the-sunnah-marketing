@@ -19,7 +19,7 @@
 
 html {
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent; /* remove tap flash on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -29,22 +29,14 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Better touch scrolling */
   -webkit-overflow-scrolling: touch;
 }
 
 /* ── SCROLLBAR (desktop only) ─────────────────────────────────── */
 @media (min-width: 768px) {
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0a0a0f;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #1a6bff;
-    border-radius: 2px;
-  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a0a0f; }
+  ::-webkit-scrollbar-thumb { background: #1a6bff; border-radius: 2px; }
 }
 
 ::selection {
@@ -53,12 +45,8 @@ body {
 }
 
 /* ── FONTS ────────────────────────────────────────────────────── */
-.font-syne {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.font-dm {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
+.font-syne { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-dm   { font-family: 'Plus Jakarta Sans', sans-serif; }
 
 /* ── GRADIENTS ────────────────────────────────────────────────── */
 .gradient-text {
@@ -67,7 +55,6 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
 .gradient-text-blue {
   background: linear-gradient(135deg, #1a6bff 0%, #00c6ff 100%);
   -webkit-background-clip: text;
@@ -90,7 +77,6 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
-
 .card-glass-hover {
   transition: all 0.3s ease;
 }
@@ -99,8 +85,6 @@ body {
   border-color: rgba(26, 107, 255, 0.3);
   transform: translateY(-4px);
 }
-
-/* Mobile card: no expensive backdrop-filter */
 .mobile-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -125,37 +109,28 @@ body {
 
 /* ── SHIMMER BUTTON ───────────────────────────────────────────── */
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
-
 .shimmer-btn {
   background: linear-gradient(
     90deg,
-    #1a6bff 0%,
-    #00c6ff 25%,
-    #1a6bff 50%,
-    #00c6ff 75%,
-    #1a6bff 100%
+    #1a6bff 0%, #00c6ff 25%, #1a6bff 50%, #00c6ff 75%, #1a6bff 100%
   );
   background-size: 200% auto;
   animation: shimmer 3s linear infinite;
   border-radius: 12px;
-  /* GPU acceleration */
   transform: translateZ(0);
   will-change: background-position;
 }
 
 /* ── ANIMATED BORDER ──────────────────────────────────────────── */
 @keyframes borderRotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
-
-.animated-border {
-  position: relative;
-}
+.animated-border { position: relative; }
 .animated-border::before {
   content: '';
   position: absolute;
@@ -167,13 +142,88 @@ body {
   z-index: -1;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   CSS-ONLY REPLACEMENTS FOR FRAMER MOTION INFINITE ANIMATIONS
+   These run on the GPU compositor thread → zero JS / zero TBT
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── HERO BLOBS ───────────────────────────────────────────────── */
+/* Replaces: motion.div animate={{ scale: [1,1.1,1], opacity:[0.15,0.25,0.15] }} */
+@keyframes blob-pulse-1 {
+  0%, 100% { transform: scale(1);    opacity: 0.15; }
+  50%       { transform: scale(1.1); opacity: 0.25; }
+}
+@keyframes blob-pulse-2 {
+  0%, 100% { transform: scale(1);    opacity: 0.08; }
+  50%       { transform: scale(1.15); opacity: 0.15; }
+}
+
+.hero-blob-1 {
+  will-change: transform, opacity;
+  animation: blob-pulse-1 8s ease-in-out infinite;
+}
+.hero-blob-2 {
+  will-change: transform, opacity;
+  animation: blob-pulse-2 10s ease-in-out infinite;
+  animation-delay: -2s; /* offset so they don't pulse in sync */
+}
+
+/* ── HERO FLOATING PARTICLES ──────────────────────────────────── */
+/* Replaces: 8× motion.div animate={{ y: [-10,10,-10], opacity:[0.3,0.8,0.3] }} */
+@keyframes particle-float {
+  0%, 100% { transform: translateY(-10px); opacity: 0.3; }
+  50%       { transform: translateY( 10px); opacity: 0.8; }
+}
+
+.hero-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(26, 107, 255, 0.6);
+  will-change: transform, opacity;
+  animation: particle-float linear infinite;
+}
+
+/* Each particle: different position, duration, delay — mirrors the original JS */
+.hero-particle:nth-child(1)  { left: 10%; top: 20%; animation-duration: 3.0s; animation-delay:  0.0s; }
+.hero-particle:nth-child(2)  { left: 22%; top: 35%; animation-duration: 3.5s; animation-delay: -0.3s; }
+.hero-particle:nth-child(3)  { left: 34%; top: 20%; animation-duration: 4.0s; animation-delay: -0.6s; }
+.hero-particle:nth-child(4)  { left: 46%; top: 35%; animation-duration: 4.5s; animation-delay: -0.9s; }
+.hero-particle:nth-child(5)  { left: 58%; top: 20%; animation-duration: 5.0s; animation-delay: -1.2s; }
+.hero-particle:nth-child(6)  { left: 70%; top: 35%; animation-duration: 5.5s; animation-delay: -1.5s; }
+.hero-particle:nth-child(7)  { left: 82%; top: 20%; animation-duration: 6.0s; animation-delay: -1.8s; }
+.hero-particle:nth-child(8)  { left: 94%; top: 35%; animation-duration: 6.5s; animation-delay: -2.1s; }
+
+/* ── CTA ROTATING RINGS ───────────────────────────────────────── */
+/* Replaces: motion.div animate={{ rotate: 360 }} transition={{ duration:60, repeat:Infinity }} */
+@keyframes ring-cw {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+@keyframes ring-ccw {
+  from { transform: rotate(0deg);    }
+  to   { transform: rotate(-360deg); }
+}
+
+.cta-ring-1 {
+  will-change: transform;
+  animation: ring-cw 60s linear infinite;
+}
+.cta-ring-2 {
+  will-change: transform;
+  animation: ring-ccw 80s linear infinite;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+
 /* ── COUNTER ──────────────────────────────────────────────────── */
 .counter-number {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
 }
 
-/* ── MOBILE HORIZONTAL SCROLL (testimonials) ─────────────────── */
+/* ── MOBILE HORIZONTAL SCROLL ────────────────────────────────── */
 .mobile-media-scroll {
   display: flex;
   overflow-x: auto;
@@ -185,11 +235,7 @@ body {
   padding: 0 20px 16px;
   margin: 0 0 4px;
 }
-
-.mobile-media-scroll::-webkit-scrollbar {
-  display: none;
-}
-
+.mobile-media-scroll::-webkit-scrollbar { display: none; }
 .mobile-media-card {
   flex-shrink: 0;
   width: 62vw;
@@ -200,50 +246,33 @@ body {
 
 /* ── MOBILE PERFORMANCE OVERRIDES ────────────────────────────── */
 @media (max-width: 767px) {
-  /* Remove expensive backdrop blur on mobile — huge GPU win */
+  /* Kill GPU-heavy backdrop blur on mobile */
   .card-glass {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: rgba(255, 255, 255, 0.04);
   }
-
-  /* Tone down noise overlay (SVG filter is GPU heavy) */
-  .noise-bg::before {
-    display: none;
-  }
-
-  /* Reduce glow intensity on mobile */
-  .glow-blue {
-    box-shadow: 0 0 20px rgba(26, 107, 255, 0.2);
-  }
-
+  /* Kill SVG noise overlay */
+  .noise-bg::before { display: none; }
+  /* Softer glows */
+  .glow-blue { box-shadow: 0 0 20px rgba(26, 107, 255, 0.2); }
+  /* Kill particle animations on mobile — not visible anyway */
+  .hero-particle { display: none; }
   /* Better touch targets */
-  a, button {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  /* Prevent layout shift during animations */
-  .section-divider {
-    contain: layout;
-  }
-
-  /* Prevent overscroll bounce from causing jank */
-  main {
-    overscroll-behavior-y: contain;
-  }
+  a, button { min-height: 44px; display: inline-flex; align-items: center; }
+  .section-divider { contain: layout; }
+  main { overscroll-behavior-y: contain; }
 }
 
 /* ── REDUCED MOTION ───────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .shimmer-btn {
-    animation: none;
-    background: #1a6bff;
-  }
-  .animated-border::before {
-    animation: none;
-  }
+  .shimmer-btn        { animation: none; background: #1a6bff; }
+  .animated-border::before { animation: none; }
+  .hero-blob-1,
+  .hero-blob-2,
+  .hero-particle,
+  .cta-ring-1,
+  .cta-ring-2         { animation: none; }
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

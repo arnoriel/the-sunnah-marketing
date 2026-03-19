@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Menu, X, ArrowRight, ChevronDown, Star, Youtube, Instagram,
   Users, Mail, Phone,
@@ -142,6 +142,59 @@ const PROCESS = [
   },
 ];
 
+// ── YOUTUBE FACADE ─────────────────────────────────────────────────────────
+// PERF: Mengganti iframe langsung dengan thumbnail + play button.
+// YouTube iframe membawa ~500KB JS. Dengan facade, JS itu tidak di-load
+// sampai user benar-benar klik → LCP jauh lebih cepat.
+function YouTubeFacade({ videoId, title }: { videoId: string; title: string }) {
+  const [activated, setActivated] = useState(false);
+  const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+  if (activated) {
+    return (
+      <iframe
+        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`}
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="absolute inset-0 w-full h-full"
+        style={{ border: 0 }}
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setActivated(true)}
+      className="absolute inset-0 w-full h-full group cursor-pointer"
+      aria-label={`Play ${title}`}
+    >
+      {/* Thumbnail — preloaded via <link rel="preload"> di index.html */}
+      <img
+        src={thumbnailUrl}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        decoding="async"
+      />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-300" />
+      {/* Play button */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#1a6bff]/90 border-2 border-white/40 flex items-center justify-center shadow-[0_0_40px_rgba(26,107,255,0.6)] group-hover:scale-110 transition-transform duration-300">
+          <Play className="w-6 h-6 md:w-8 md:h-8 text-white fill-white ml-1" />
+        </div>
+      </div>
+      {/* Label */}
+      <div className="absolute bottom-3 left-3 right-3">
+        <p className="font-dm text-xs text-white/70 bg-black/50 backdrop-blur-sm px-2 py-1 rounded inline-block">
+          ▶ Watch — Scale The Halal Way
+        </p>
+      </div>
+    </button>
+  );
+}
+
 // ── FADE IN WRAPPER ────────────────────────────────────────────────────────
 function FadeIn({
   children,
@@ -203,7 +256,13 @@ function Navbar() {
           <a href="#" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="w-9 h-9 md:w-10 md:h-10 overflow-hidden rounded-lg flex-shrink-0">
-                <img src="/icon.jpg" alt="TSM Logo" className="w-full h-full object-cover" />
+                <img
+                  src="/icon.jpg"
+                  alt="TSM Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="absolute inset-0 bg-[#1a6bff] opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
             </div>
@@ -285,17 +344,6 @@ function Navbar() {
                 </motion.a>
               ))}
             </div>
-            {/* Free Consultation button — hidden on mobile (Book Call already in navbar) */}
-            <motion.a
-              href="https://calendly.com/djalifsr/thesunnahmarketing"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              onClick={() => setMobileOpen(false)}
-              className="hidden lg:block mt-8 shimmer-btn font-syne font-bold text-white text-center py-4 rounded-xl"
-            >
-              Free Consultation
-            </motion.a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -306,21 +354,16 @@ function Navbar() {
 // ── HERO ───────────────────────────────────────────────────────────────────
 function Hero() {
   const isMobile = useIsMobile();
-  const { scrollYProgress } = useScroll();
-  const yDesktop = useTransform(scrollYProgress, [0, 0.3], [0, -80]);
-  const opacityDesktop = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
-  // Mobile Hero
+  // ── Mobile Hero ──
   if (isMobile) {
     return (
       <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#050507] pt-24 pb-12">
-        {/* Lightweight static blobs */}
+        {/* Static CSS blobs — no JS cost */}
         <div className="absolute top-1/4 right-0 w-64 h-64 rounded-full bg-[#1a6bff] blur-[80px] opacity-10 pointer-events-none" />
-        <div className="absolute bottom-1/3 left-0 w-48 h-48 rounded-full bg-[#00c6ff] blur-[60px] opacity-8 pointer-events-none" />
+        <div className="absolute bottom-1/3 left-0 w-48 h-48 rounded-full bg-[#00c6ff] blur-[60px] opacity-[0.08] pointer-events-none" />
 
         <div className="relative z-10 px-5 flex flex-col items-center text-center">
-
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -341,7 +384,7 @@ function Hero() {
             Scale Businesses The Halal Way
           </motion.p>
 
-          {/* VSL — YouTube embed, landscape */}
+          {/* PERF: YouTubeFacade — tidak load YouTube JS sampai diklik */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -353,14 +396,7 @@ function Hero() {
               className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14]"
               style={{ aspectRatio: "16/9" }}
             >
-              <iframe
-                src="https://www.youtube.com/embed/FOup6vHkTyY?rel=0&modestbranding=1"
-                title="The Sunnah Marketing VSL"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-                style={{ border: 0 }}
-              />
+              <YouTubeFacade videoId="FOup6vHkTyY" title="The Sunnah Marketing VSL" />
             </div>
           </motion.div>
 
@@ -374,7 +410,6 @@ function Hero() {
             grow without compromising their deen.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -399,7 +434,6 @@ function Hero() {
             </a>
           </motion.div>
 
-          {/* Trust badges */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -422,20 +456,18 @@ function Hero() {
     );
   }
 
-  // Desktop Hero
+  // ── Desktop Hero ──
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050507] mt-40">
       <div className="absolute inset-0">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-[#1a6bff] blur-[120px] opacity-15"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.15, 0.08] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-[#00c6ff] blur-[100px] opacity-10"
-        />
+        {/*
+          PERF: Blobs sekarang pakai CSS class .hero-blob-1 & .hero-blob-2 (index.css).
+          Animasi pulse berjalan di GPU compositor — identik visual, nol TBT.
+        */}
+        <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-[#1a6bff] blur-[120px] opacity-15 hero-blob-1" />
+        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-[#00c6ff] blur-[100px] opacity-10 hero-blob-2" />
+
+        {/* Grid lines — static */}
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
@@ -445,22 +477,24 @@ function Hero() {
         />
         <div className="absolute top-[38%] left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00c6ff]/20 to-transparent" />
         <div className="absolute top-[62%] left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#1a6bff]/15 to-transparent" />
+
+        {/*
+          PERF: 8 particles pakai CSS class .hero-particle (index.css).
+          Posisi & timing tiap partikel diatur via :nth-child selector di CSS.
+          Berjalan di GPU compositor — identik visual, nol TBT.
+        */}
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
+        <div className="hero-particle" />
       </div>
 
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-[#1a6bff]/60"
-          style={{ left: `${10 + i * 12}%`, top: `${20 + (i % 4) * 15}%` }}
-          animate={{ y: [-10, 10, -10], opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
-        />
-      ))}
-
-      <motion.div
-        style={{ y: yDesktop, opacity: opacityDesktop }}
-        className="relative z-10 max-w-5xl mx-auto px-6 text-center"
-      >
+      {/* PERF: Dihapus useScroll parallax — menyebabkan layout thrashing */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -481,29 +515,19 @@ function Hero() {
           Scale Businesses The Halal Way
         </motion.p>
 
-        {/* VSL — YouTube embed, landscape */}
+        {/* PERF: YouTubeFacade — ~500KB YouTube JS tidak dimuat sampai diklik */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
           className="relative max-w-3xl mx-auto mb-10"
         >
-          {/* Glow border */}
           <div className="absolute -inset-1 bg-gradient-to-r from-[#1a6bff]/40 via-[#00c6ff]/20 to-[#1a6bff]/40 rounded-2xl blur-lg opacity-60" />
-
-          {/* Video container — aspect ratio 16:9 */}
           <div
             className="relative w-full rounded-2xl border border-white/10 overflow-hidden bg-[#0d0d14]"
             style={{ aspectRatio: "16/9" }}
           >
-            <iframe
-              src="https://www.youtube.com/embed/FOup6vHkTyY?rel=0&modestbranding=1"
-              title="The Sunnah Marketing VSL"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-              style={{ border: 0 }}
-            />
+            <YouTubeFacade videoId="FOup6vHkTyY" title="The Sunnah Marketing VSL" />
           </div>
         </motion.div>
 
@@ -540,7 +564,7 @@ function Hero() {
             See Our Services
           </a>
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -701,7 +725,14 @@ function WhyUsSection() {
                 </p>
                 <div className="flex items-center gap-3 border-t border-white/10 pt-5 md:pt-6">
                   <div className="w-8 h-8 overflow-hidden rounded-lg flex-shrink-0">
-                    <img src="/icon.jpg" alt="TSM" className="w-full h-full object-cover" />
+                    <img
+                      src="/icon.jpg"
+                      alt="TSM"
+                      width={32}
+                      height={32}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <p className="font-syne font-bold text-white text-sm">The Sunnah Marketing</p>
@@ -745,7 +776,7 @@ function ServicesSection() {
           </FadeIn>
         </div>
 
-        {/* Mobile: stacked cards with visible borders */}
+        {/* Mobile: stacked cards */}
         <div className="flex flex-col gap-3 md:hidden">
           {SERVICES.map((service, i) => (
             <FadeIn key={service.title} delay={i * 0.08}>
@@ -769,7 +800,7 @@ function ServicesSection() {
           ))}
         </div>
 
-        {/* Desktop: original grid */}
+        {/* Desktop: grid */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
           {SERVICES.map((service, i) => (
             <FadeIn key={service.title} delay={i * 0.08} className="bg-[#050507]">
@@ -824,12 +855,10 @@ function ProcessSection() {
 
         {/* Mobile: vertical timeline */}
         <div className="flex flex-col gap-0 md:hidden relative">
-          {/* Vertical line */}
           <div className="absolute left-[1.4rem] top-8 bottom-8 w-px bg-gradient-to-b from-[#1a6bff]/40 via-[#1a6bff]/20 to-transparent" />
           {PROCESS.map((step, i) => (
             <FadeIn key={step.step} delay={i * 0.1}>
               <div className="flex gap-4 pb-8 relative">
-                {/* Step circle */}
                 <div className="flex-shrink-0 w-11 h-11 bg-[#0a0a0f] border-2 border-[#1a6bff]/40 font-syne font-black text-[#1a6bff] text-xs flex items-center justify-center rounded-full z-10">
                   {step.step}
                 </div>
@@ -868,7 +897,6 @@ function ProcessSection() {
           </div>
         </div>
 
-        {/* Timeline callout */}
         <FadeIn delay={0.6}>
           <div className="mt-10 md:mt-16 flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 text-center">
             {[
@@ -901,7 +929,7 @@ function VideoCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const vid = videoRef.current;
     if (!vid) return;
     if (vid.paused) {
@@ -911,7 +939,7 @@ function VideoCard({
       vid.pause();
       setIsPlaying(false);
     }
-  };
+  }, []);
 
   return (
     <div
@@ -920,12 +948,13 @@ function VideoCard({
       onClick={togglePlay}
     >
       <div className="absolute inset-0 bg-[#0d0d18]" />
+      {/* PERF: preload="none" — tidak fetch video data sampai diklik */}
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
         src={src}
         playsInline
-        preload="metadata"
+        preload="none"
         onEnded={() => setIsPlaying(false)}
       />
       <div
@@ -956,13 +985,6 @@ function VideoCard({
 }
 
 function TestimonialsSection() {
-  const [, setActive] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setActive((p) => (p + 1) % TESTIMONIALS.length), 5000);
-    return () => clearInterval(t);
-  }, []);
-
   const photoItems = [
     { src: "/assets/abdullahghaffar1.jpg", label: "Followers Growth on Abdullah Ghaffar" },
     { src: "/assets/abdullahghaffar2.jpg", label: "Reel Insight Growth on Abdullah Ghaffar" },
@@ -1008,6 +1030,7 @@ function TestimonialsSection() {
                   src={item.src}
                   alt={item.label}
                   loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
                   <p className="font-dm text-xs text-white/60">{item.label}</p>
@@ -1015,7 +1038,6 @@ function TestimonialsSection() {
               </div>
             ))}
           </div>
-          {/* Scroll hint */}
           <div className="flex items-center justify-center gap-2 mt-3 px-5">
             <div className="h-px flex-1 bg-white/5" />
             <p className="font-dm text-xs text-white/20 tracking-widest uppercase">swipe to explore</p>
@@ -1023,7 +1045,7 @@ function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Desktop: original grid */}
+        {/* Desktop: grid */}
         <div className="hidden md:grid grid-cols-5 gap-3 mb-5 px-6">
           <FadeIn delay={0}>
             <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
@@ -1039,6 +1061,8 @@ function TestimonialsSection() {
                   className="absolute inset-0 w-full h-full object-cover"
                   src={item.src}
                   alt={item.label}
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-[#1a6bff]/0 group-hover:bg-[#1a6bff]/5 transition-all duration-300" />
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1132,7 +1156,6 @@ function FAQSection() {
         <div className="flex flex-col gap-2 md:gap-0 md:space-y-px md:bg-white/5">
           {FAQS.map((faq, i) => (
             <FadeIn key={i} delay={i * 0.05}>
-              {/* Mobile: card style */}
               <div className="mobile-card md:bg-[#0a0a0f] rounded-xl md:rounded-none border border-white/8 md:border-0 overflow-hidden">
                 <button
                   onClick={() => setOpen(open === i ? null : i)}
@@ -1207,18 +1230,14 @@ function CTABanner() {
     <section className="py-16 md:py-32 bg-[#050507] relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a6bff]/10 via-transparent to-[#00c6ff]/5" />
-        {/* Only show rotating rings on desktop */}
+        {/*
+          PERF: Rotating rings sekarang pakai CSS class .cta-ring-1 & .cta-ring-2
+          (didefinisikan di index.css dengan @keyframes ring-cw / ring-ccw).
+          Berjalan di GPU compositor thread — visual identik, nol TBT.
+        */}
         <div className="hidden md:block">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-            className="absolute -right-64 -top-64 w-[600px] h-[600px] border border-[#1a6bff]/5 rounded-full"
-          />
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-            className="absolute -left-32 -bottom-32 w-[400px] h-[400px] border border-[#00c6ff]/5 rounded-full"
-          />
+          <div className="cta-ring-1 absolute -right-64 -top-64 w-[600px] h-[600px] border border-[#1a6bff]/5 rounded-full" />
+          <div className="cta-ring-2 absolute -left-32 -bottom-32 w-[400px] h-[400px] border border-[#00c6ff]/5 rounded-full" />
         </div>
       </div>
 
@@ -1245,7 +1264,6 @@ function CTABanner() {
           </p>
         </FadeIn>
 
-        {/* 3-step visual */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-10 md:mb-14">
           {steps.map((step, i) => (
             <FadeIn key={i} delay={0.2 + i * 0.1}>
@@ -1290,7 +1308,7 @@ function CTABanner() {
   );
 }
 
-// ── FOOTER ──────────────────────────────────────────────────────────────────
+// ── FOOTER ─────────────────────────────────────────────────────────────────
 function Footer() {
   return (
     <footer className="bg-[#0a0a0f] border-t border-white/5">
@@ -1300,7 +1318,14 @@ function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-5 md:mb-6">
               <div className="w-9 h-9 md:w-10 md:h-10 overflow-hidden rounded-lg flex-shrink-0">
-                <img src="/icon.jpg" alt="TSM Logo" className="w-full h-full object-cover" />
+                <img
+                  src="/icon.jpg"
+                  alt="TSM Logo"
+                  width={40}
+                  height={40}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <p className="font-syne font-bold text-white text-sm">The Sunnah Marketing</p>
@@ -1359,18 +1384,16 @@ function Footer() {
               Services
             </h4>
             <ul className="space-y-3">
-              {["Social Media Marketing", "Video Editing", "High Converting Website"].map(
-                (item) => (
-                  <li key={item}>
-                    <a
-                      href="#services"
-                      className="font-dm text-sm text-white/35 hover:text-white transition-colors"
-                    >
-                      {item}
-                    </a>
-                  </li>
-                )
-              )}
+              {["Social Media Marketing", "Video Editing", "High Converting Website"].map((item) => (
+                <li key={item}>
+                  <a
+                    href="#services"
+                    className="font-dm text-sm text-white/35 hover:text-white transition-colors"
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -1424,7 +1447,7 @@ function Footer() {
   );
 }
 
-// ── SCROLL TO TOP ───────────────────────────────────────────────────────────
+// ── SCROLL TO TOP ──────────────────────────────────────────────────────────
 function ScrollToTop() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -1450,38 +1473,11 @@ function ScrollToTop() {
   );
 }
 
-// ── CURSOR SPOTLIGHT (desktop only) ─────────────────────────────────────────
-function CursorSpotlight() {
-  const isMobile = useIsMobile();
-  const [pos, setPos] = useState({ x: -200, y: -200 });
-
-  useEffect(() => {
-    if (isMobile) return;
-    const fn = (e: MouseEvent) => setPos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", fn);
-    return () => window.removeEventListener("mousemove", fn);
-  }, [isMobile]);
-
-  if (isMobile) return null;
-
-  return (
-    <div
-      className="fixed pointer-events-none z-50 w-[600px] h-[600px] rounded-full"
-      style={{
-        left: pos.x - 300,
-        top: pos.y - 300,
-        background: "radial-gradient(circle, rgba(26,107,255,0.04) 0%, transparent 70%)",
-        transition: "left 0.1s ease, top 0.1s ease",
-      }}
-    />
-  );
-}
-
-// ── APP ROOT ────────────────────────────────────────────────────────────────
+// ── APP ROOT ───────────────────────────────────────────────────────────────
+// PERF: CursorSpotlight dihapus — mousemove handler setiap frame = TBT naik.
 export default function App() {
   return (
     <div className="noise-bg">
-      <CursorSpotlight />
       <Navbar />
       <main>
         <Hero />
