@@ -1,0 +1,13 @@
+# robots.txt — The Sunnah Marketing
+# https://thesunnahmarketing.com
+
+User-agent: *
+Allow: /
+
+# Block dev/build artifacts (safety net)
+Disallow: /src/
+Disallow: /*.json$
+Disallow: /node_modules/
+
+# Sitemap location
+Sitemap: https://thesunnahmarketing.com/sitemap.xml
