@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="google-site-verification" content="DRpipXFR3l_9glifrRPaZFepgH7ew31yClFsbu-8uZQ" />
+
     <!-- ═══════════════════════════════════════
          CORE SEO
     ═══════════════════════════════════════ -->
@@ -14,7 +15,7 @@
     <link rel="canonical" href="https://thesunnahmarketing.com/" />
 
     <!-- ═══════════════════════════════════════
-         OPEN GRAPH (Facebook, WhatsApp, LinkedIn)
+         OPEN GRAPH
     ═══════════════════════════════════════ -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://thesunnahmarketing.com/" />
@@ -39,7 +40,7 @@
     <meta name="twitter:image:alt" content="The Sunnah Marketing – Halal Marketing Agency" />
 
     <!-- ═══════════════════════════════════════
-         FAVICON & ICONS
+         FAVICON
     ═══════════════════════════════════════ -->
     <link rel="icon" type="image/jpeg" href="/icon.jpg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icon.jpg" />
@@ -51,14 +52,51 @@
     <meta name="theme-color" content="#050507" />
 
     <!-- ═══════════════════════════════════════
-         GEO (optional but helpful for local SEO)
+         GEO
     ═══════════════════════════════════════ -->
     <meta name="geo.region" content="ID" />
     <meta name="geo.placename" content="Indonesia" />
 
     <!-- ═══════════════════════════════════════
+         CRITICAL PERF: PRECONNECT + DNS PREFETCH
+         Order matters — preconnect first, then dns-prefetch as fallback
+    ═══════════════════════════════════════ -->
+    <!-- YouTube thumbnail CDN — needed for LCP image -->
+    <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+    <link rel="dns-prefetch" href="https://i.ytimg.com" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Calendly -->
+    <link rel="dns-prefetch" href="https://calendly.com" />
+    <!-- YouTube embed (only loaded on click, but preconnect speeds it up) -->
+    <link rel="dns-prefetch" href="https://www.youtube.com" />
+
+    <!-- ═══════════════════════════════════════
+         CRITICAL PERF: PRELOAD LCP IMAGE
+         The YouTube thumbnail is the LCP element on both mobile and desktop.
+         Preloading it tells the browser to fetch it at highest priority,
+         competing only with CSS/JS — dramatically cuts LCP time.
+    ═══════════════════════════════════════ -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://i.ytimg.com/vi/FOup6vHkTyY/hqdefault.jpg"
+      fetchpriority="high"
+    />
+
+    <!-- ═══════════════════════════════════════
+         FONTS — only load weights actually used (400, 500, 600, 700, 800)
+         Removed: 300 and italic variants → saves ~30KB per removed weight
+         display=swap prevents invisible text during font load (no CLS)
+    ═══════════════════════════════════════ -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- ═══════════════════════════════════════
          STRUCTURED DATA — JSON-LD
-         (Organization + WebSite + FAQPage)
     ═══════════════════════════════════════ -->
     <script type="application/ld+json">
     {
@@ -78,38 +116,14 @@
           },
           "description": "The Sunnah Marketing is a halal-focused digital marketing agency helping Muslim-owned businesses and halal brands grow globally through ethical, results-driven marketing.",
           "foundingDate": "2021",
-          "numberOfEmployees": {
-            "@type": "QuantitativeValue",
-            "minValue": 1,
-            "maxValue": 10
-          },
+          "numberOfEmployees": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 10 },
           "areaServed": "Worldwide",
-          "knowsAbout": [
-            "Halal Marketing",
-            "Social Media Marketing",
-            "Video Editing",
-            "Web Design",
-            "Islamic Digital Marketing",
-            "Muslim Business Growth"
-          ],
+          "knowsAbout": ["Halal Marketing","Social Media Marketing","Video Editing","Web Design","Islamic Digital Marketing","Muslim Business Growth"],
           "contactPoint": [
-            {
-              "@type": "ContactPoint",
-              "telephone": "+62-813-3473-0675",
-              "contactType": "customer service",
-              "availableLanguage": ["English", "Indonesian"],
-              "contactOption": "TollFree"
-            },
-            {
-              "@type": "ContactPoint",
-              "email": "djalifsr@gmail.com",
-              "contactType": "customer service"
-            }
+            { "@type": "ContactPoint", "telephone": "+62-813-3473-0675", "contactType": "customer service", "availableLanguage": ["English","Indonesian"], "contactOption": "TollFree" },
+            { "@type": "ContactPoint", "email": "djalifsr@gmail.com", "contactType": "customer service" }
           ],
-          "sameAs": [
-            "https://www.instagram.com/thesunnahmarketing/",
-            "https://www.youtube.com/@dejavascales"
-          ]
+          "sameAs": ["https://www.instagram.com/thesunnahmarketing/","https://www.youtube.com/@dejavascales"]
         },
         {
           "@type": "WebSite",
@@ -117,9 +131,7 @@
           "url": "https://thesunnahmarketing.com",
           "name": "The Sunnah Marketing",
           "description": "Halal Marketing Agency helping Muslim businesses grow online",
-          "publisher": {
-            "@id": "https://thesunnahmarketing.com/#organization"
-          },
+          "publisher": { "@id": "https://thesunnahmarketing.com/#organization" },
           "inLanguage": "en-US"
         },
         {
@@ -131,10 +143,7 @@
           "about": { "@id": "https://thesunnahmarketing.com/#organization" },
           "description": "The Sunnah Marketing is a halal digital marketing agency helping Muslim-owned businesses scale online — 100% halal, bi idhnillah.",
           "inLanguage": "en-US",
-          "potentialAction": {
-            "@type": "ReadAction",
-            "target": ["https://thesunnahmarketing.com/"]
-          }
+          "potentialAction": { "@type": "ReadAction", "target": ["https://thesunnahmarketing.com/"] }
         },
         {
           "@type": "ProfessionalService",
@@ -148,101 +157,30 @@
           "currenciesAccepted": "USD, IDR",
           "paymentAccepted": "Cash, Bank Transfer",
           "description": "Halal digital marketing agency specialising in Social Media Marketing, Video Editing and High-Converting Websites for Muslim-owned businesses worldwide.",
-          "areaServed": {
-            "@type": "Place",
-            "name": "Worldwide"
-          },
+          "areaServed": { "@type": "Place", "name": "Worldwide" },
           "hasOfferCatalog": {
             "@type": "OfferCatalog",
             "name": "Halal Marketing Services",
             "itemListElement": [
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "Social Media Marketing",
-                  "description": "Halal-compliant content strategy, creation, and posting for Instagram, YouTube, TikTok, and LinkedIn."
-                }
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "Video Editing",
-                  "description": "Professional video editing for Muslim creators and halal brands — YouTube, Reels, Product Videos, Da'wah Content."
-                }
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "High Converting Website",
-                  "description": "Clean, fast, mobile-first websites and landing pages built with Islamic design principles."
-                }
-              }
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Social Media Marketing", "description": "Halal-compliant content strategy, creation, and posting for Instagram, YouTube, TikTok, and LinkedIn." } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Video Editing", "description": "Professional video editing for Muslim creators and halal brands — YouTube, Reels, Product Videos, Da'wah Content." } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "High Converting Website", "description": "Clean, fast, mobile-first websites and landing pages built with Islamic design principles." } }
             ]
           },
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "5",
-            "ratingCount": "17",
-            "bestRating": "5",
-            "worstRating": "1"
-          }
+          "aggregateRating": { "@type": "AggregateRating", "ratingValue": "5", "ratingCount": "17", "bestRating": "5", "worstRating": "1" }
         },
         {
           "@type": "FAQPage",
           "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "Do you work with non-Muslim businesses?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, as long as the business operates within Halal guidelines (no alcohol, gambling, adult content, etc.). We're happy to work with ethical businesses of any background who want to serve or reach Muslim audiences."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How quickly will I see results from halal marketing?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Most clients see increased engagement within 2–4 weeks. Qualified leads typically start coming in by week 6–8. Full momentum is usually reached by 90 days with consistent execution."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What if I don't like the content?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "We offer revisions for all content we produce. Your approval is required before anything goes live — we won't publish a single post, video, or page without your sign-off."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do payments work?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "We require upfront payment for every package to ensure mutual commitment. We also offer payment plans for qualifying clients — reach out and we'll find a structure that works for you."
-              }
-            }
+            { "@type": "Question", "name": "Do you work with non-Muslim businesses?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, as long as the business operates within Halal guidelines (no alcohol, gambling, adult content, etc.). We're happy to work with ethical businesses of any background who want to serve or reach Muslim audiences." } },
+            { "@type": "Question", "name": "How quickly will I see results from halal marketing?", "acceptedAnswer": { "@type": "Answer", "text": "Most clients see increased engagement within 2–4 weeks. Qualified leads typically start coming in by week 6–8. Full momentum is usually reached by 90 days with consistent execution." } },
+            { "@type": "Question", "name": "What if I don't like the content?", "acceptedAnswer": { "@type": "Answer", "text": "We offer revisions for all content we produce. Your approval is required before anything goes live — we won't publish a single post, video, or page without your sign-off." } },
+            { "@type": "Question", "name": "How do payments work?", "acceptedAnswer": { "@type": "Answer", "text": "We require upfront payment for every package to ensure mutual commitment. We also offer payment plans for qualifying clients — reach out and we'll find a structure that works for you." } }
           ]
         }
       ]
     }
     </script>
-
-    <!-- ═══════════════════════════════════════
-         FONTS
-    ═══════════════════════════════════════ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500&display=swap" rel="stylesheet" />
-
-    <!-- ═══════════════════════════════════════
-         PERFORMANCE HINTS
-    ═══════════════════════════════════════ -->
-    <link rel="dns-prefetch" href="https://www.youtube.com" />
-    <link rel="dns-prefetch" href="https://calendly.com" />
   </head>
   <body>
     <div id="root"></div>

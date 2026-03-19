@@ -99,12 +99,16 @@ body {
   pointer-events: none;
   z-index: 0;
   opacity: 0.4;
+  /* Use will-change so the compositing is done on the GPU and doesn't block paint */
+  will-change: transform;
 }
 
 /* ── SECTION DIVIDER ──────────────────────────────────────────── */
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(26, 107, 255, 0.3), transparent);
+  /* Prevent the divider itself from triggering reflows */
+  contain: layout style;
 }
 
 /* ── SHIMMER BUTTON ───────────────────────────────────────────── */
@@ -148,7 +152,6 @@ body {
    ══════════════════════════════════════════════════════════════ */
 
 /* ── HERO BLOBS ───────────────────────────────────────────────── */
-/* Replaces: motion.div animate={{ scale: [1,1.1,1], opacity:[0.15,0.25,0.15] }} */
 @keyframes blob-pulse-1 {
   0%, 100% { transform: scale(1);    opacity: 0.15; }
   50%       { transform: scale(1.1); opacity: 0.25; }
@@ -157,7 +160,6 @@ body {
   0%, 100% { transform: scale(1);    opacity: 0.08; }
   50%       { transform: scale(1.15); opacity: 0.15; }
 }
-
 .hero-blob-1 {
   will-change: transform, opacity;
   animation: blob-pulse-1 8s ease-in-out infinite;
@@ -165,16 +167,14 @@ body {
 .hero-blob-2 {
   will-change: transform, opacity;
   animation: blob-pulse-2 10s ease-in-out infinite;
-  animation-delay: -2s; /* offset so they don't pulse in sync */
+  animation-delay: -2s;
 }
 
 /* ── HERO FLOATING PARTICLES ──────────────────────────────────── */
-/* Replaces: 8× motion.div animate={{ y: [-10,10,-10], opacity:[0.3,0.8,0.3] }} */
 @keyframes particle-float {
   0%, 100% { transform: translateY(-10px); opacity: 0.3; }
   50%       { transform: translateY( 10px); opacity: 0.8; }
 }
-
 .hero-particle {
   position: absolute;
   width: 4px;
@@ -184,8 +184,6 @@ body {
   will-change: transform, opacity;
   animation: particle-float linear infinite;
 }
-
-/* Each particle: different position, duration, delay — mirrors the original JS */
 .hero-particle:nth-child(1)  { left: 10%; top: 20%; animation-duration: 3.0s; animation-delay:  0.0s; }
 .hero-particle:nth-child(2)  { left: 22%; top: 35%; animation-duration: 3.5s; animation-delay: -0.3s; }
 .hero-particle:nth-child(3)  { left: 34%; top: 20%; animation-duration: 4.0s; animation-delay: -0.6s; }
@@ -196,24 +194,10 @@ body {
 .hero-particle:nth-child(8)  { left: 94%; top: 35%; animation-duration: 6.5s; animation-delay: -2.1s; }
 
 /* ── CTA ROTATING RINGS ───────────────────────────────────────── */
-/* Replaces: motion.div animate={{ rotate: 360 }} transition={{ duration:60, repeat:Infinity }} */
-@keyframes ring-cw {
-  from { transform: rotate(0deg);   }
-  to   { transform: rotate(360deg); }
-}
-@keyframes ring-ccw {
-  from { transform: rotate(0deg);    }
-  to   { transform: rotate(-360deg); }
-}
-
-.cta-ring-1 {
-  will-change: transform;
-  animation: ring-cw 60s linear infinite;
-}
-.cta-ring-2 {
-  will-change: transform;
-  animation: ring-ccw 80s linear infinite;
-}
+@keyframes ring-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+@keyframes ring-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
+.cta-ring-1 { will-change: transform; animation: ring-cw  60s linear infinite; }
+.cta-ring-2 { will-change: transform; animation: ring-ccw 80s linear infinite; }
 
 /* ══════════════════════════════════════════════════════════════ */
 
@@ -244,6 +228,21 @@ body {
   overflow: hidden;
 }
 
+/* ── CONTENT VISIBILITY for below-fold sections ──────────────── */
+/* Tells the browser it can skip rendering off-screen sections.   */
+/* auto = browser decides; section becomes "visible" when in VP.  */
+/* This dramatically reduces initial render work on mobile.       */
+#about,
+#why-us,
+#services,
+#process,
+#testimonials,
+#faq {
+  content-visibility: auto;
+  /* contain-intrinsic-size prevents CLS when section skips render */
+  contain-intrinsic-size: 0 600px;
+}
+
 /* ── MOBILE PERFORMANCE OVERRIDES ────────────────────────────── */
 @media (max-width: 767px) {
   /* Kill GPU-heavy backdrop blur on mobile */
@@ -266,16 +265,16 @@ body {
 
 /* ── REDUCED MOTION ───────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .shimmer-btn        { animation: none; background: #1a6bff; }
+  .shimmer-btn         { animation: none; background: #1a6bff; }
   .animated-border::before { animation: none; }
   .hero-blob-1,
   .hero-blob-2,
   .hero-particle,
   .cta-ring-1,
-  .cta-ring-2         { animation: none; }
+  .cta-ring-2          { animation: none; }
   * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:       0.01ms !important;
   }
 }
