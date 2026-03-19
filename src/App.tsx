@@ -920,16 +920,28 @@ function ProcessSection() {
 function VideoCard({
   src,
   label,
+  poster,
   className = "",
 }: {
   src: string;
   label: string;
+  poster?: string;
   className?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [activated, setActivated] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const togglePlay = useCallback(() => {
+  const handleActivate = useCallback(() => {
+    if (!activated) {
+      setActivated(true);
+      // Beri waktu browser mount video, baru play
+      setTimeout(() => {
+        videoRef.current?.play();
+        setIsPlaying(true);
+      }, 50);
+      return;
+    }
     const vid = videoRef.current;
     if (!vid) return;
     if (vid.paused) {
@@ -939,24 +951,40 @@ function VideoCard({
       vid.pause();
       setIsPlaying(false);
     }
-  }, []);
+  }, [activated]);
 
   return (
     <div
       className={`relative overflow-hidden border border-white/8 group cursor-pointer hover:border-[#1a6bff]/40 transition-all duration-300 ${className}`}
       style={{ aspectRatio: "9/16" }}
-      onClick={togglePlay}
+      onClick={handleActivate}
     >
       <div className="absolute inset-0 bg-[#0d0d18]" />
-      {/* PERF: preload="none" — tidak fetch video data sampai diklik */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        src={src}
-        playsInline
-        preload="none"
-        onEnded={() => setIsPlaying(false)}
-      />
+
+      {/* Video — hanya di-mount setelah diklik */}
+      {activated && (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          src={src}
+          playsInline
+          preload="auto"
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
+
+      {/* Poster / thumbnail — tampil sebelum diklik atau saat pause */}
+      {poster && !isPlaying && (
+        <img
+          src={poster}
+          alt={label}
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+
+      {/* Play / Pause overlay */}
       <div
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
           isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
@@ -977,6 +1005,8 @@ function VideoCard({
           )}
         </motion.div>
       </div>
+
+      {/* Label hover */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <p className="font-dm text-xs text-white/70">{label}</p>
       </div>
@@ -1016,7 +1046,7 @@ function TestimonialsSection() {
         <div className="md:hidden">
           <div className="mobile-media-scroll">
             <div className="mobile-media-card">
-              <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
+              <VideoCard src="/assets/abdullahghaffar5.mp4" poster="/assets/thumbnail.png" label="Client Video Testimonial" />
             </div>
             {photoItems.map((item, i) => (
               <div
@@ -1048,7 +1078,7 @@ function TestimonialsSection() {
         {/* Desktop: grid */}
         <div className="hidden md:grid grid-cols-5 gap-3 mb-5 px-6">
           <FadeIn delay={0}>
-            <VideoCard src="/assets/abdullahghaffar5.mp4" label="Client Video Testimonial" />
+            <VideoCard src="/assets/abdullahghaffar5.mp4" poster="/assets/thumbnail.png" label="Client Video Testimonial" />
           </FadeIn>
           {photoItems.map((item, i) => (
             <FadeIn key={i} delay={(i + 1) * 0.07}>
