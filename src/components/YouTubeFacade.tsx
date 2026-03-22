@@ -40,9 +40,8 @@ export default function YouTubeFacade({ videoId, title, priority = false }: YouT
         /* Hero LCP image: eager + high priority; below-fold: lazy */
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        // fetchpriority is a valid HTML attribute for LCP boost
-        // @ts-expect-error – fetchpriority not yet in React types
-        fetchpriority={priority ? "high" : "auto"}
+        // fetchPriority is a valid HTML attribute for LCP boost
+        fetchPriority={priority ? "high" : "auto"}
       />
       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-300" />
       <div className="absolute inset-0 flex items-center justify-center">
