@@ -1,6 +1,7 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import WhoWeAreSection    from "./components/WhoWeAreSection";
+import PortfoliosSection  from "./components/PortfoliosSection";
 import WhyUsSection       from "./components/WhyUsSection";
 import ServicesSection    from "./components/ServicesSection";
 import ProcessSection     from "./components/ProcessSection";
@@ -18,6 +19,8 @@ export default function App() {
         <Hero />
         <div className="section-divider" />
         <WhoWeAreSection />
+        <div className="section-divider" />
+        <PortfoliosSection />
         <div className="section-divider" />
         <WhyUsSection />
         <div className="section-divider" />
