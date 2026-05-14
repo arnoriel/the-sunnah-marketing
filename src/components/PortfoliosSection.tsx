@@ -39,6 +39,20 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     description: "Premium real estate presence that commands trust and drives leads.",
     tag: "Real Estate",
   },
+  {
+    name: "Benvenuto",
+    sitename: "benvenuto",
+    url: "https://benvenuto-beta.vercel.app/",
+    description: "Sesuaikan description-nya.",
+    tag: "Restaurant & Dining",
+  },
+  {
+    name: "Partnerhaus",
+    sitename: "partnerhaus",
+    url: "https://partnerhaus.vercel.app/",
+    description: "Sesuaikan description-nya.",
+    tag: "Business & Services",
+  },
 ];
 
 function PortfolioCard({ item, index }: { item: PortfolioItem; index: number }) {

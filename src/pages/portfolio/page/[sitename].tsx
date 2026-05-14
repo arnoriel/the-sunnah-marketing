@@ -7,6 +7,8 @@ const SITE_MAP: Record<string, { url: string; name: string }> = {
   outdoorjob: { url: "https://outdoor-job.vercel.app/", name: "Outdoor Job" },
   verdura: { url: "https://verdura-gardening.vercel.app/", name: "Verdura Gardening" },
   propertydeveloper: { url: "https://property-developer-two.vercel.app/", name: "Property Developer" },
+  benvenuto: { url: "https://benvenuto-beta.vercel.app/", name: "Benvenuto" },
+  partnerhaus: { url: "https://partnerhaus.vercel.app/", name: "Partnerhaus" },
 };
 
 export default function PortfolioPage() {
