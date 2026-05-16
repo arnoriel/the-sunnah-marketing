@@ -9,6 +9,8 @@ const SITE_MAP: Record<string, { url: string; name: string }> = {
   propertydeveloper: { url: "https://property-developer-two.vercel.app/", name: "Property Developer" },
   benvenuto: { url: "https://benvenuto-beta.vercel.app/", name: "Benvenuto" },
   partnerhaus: { url: "https://partnerhaus.vercel.app/", name: "Partnerhaus" },
+  derevuelo: { url: "https://derevuelo.vercel.app/", name: "Derevuelo" },
+  goflyio: { url: "https://goflyio.vercel.app/", name: "Goflyio" },
 };
 
 export default function PortfolioPage() {

@@ -53,6 +53,20 @@ const PORTFOLIO_ITEMS: PortfolioItem[] = [
     description: "Sesuaikan description-nya.",
     tag: "Business & Services",
   },
+  {
+    name: "Derevuelo",
+    sitename: "derevuelo",
+    url: "https://derevuelo.vercel.app/",
+    description: "Sesuaikan description-nya.",
+    tag: "Business & Services",
+  },
+  {
+    name: "Goflyio",
+    sitename: "goflyio",
+    url: "https://goflyio.vercel.app/",
+    description: "Sesuaikan description-nya.",
+    tag: "Landing Page",
+  },
 ];
 
 function PortfolioCard({ item, index }: { item: PortfolioItem; index: number }) {
