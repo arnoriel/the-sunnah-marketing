@@ -1,6 +1,7 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import WhoWeAreSection    from "./components/WhoWeAreSection";
+import ProblemsSolutionsSection from "./components/ProblemsSolutionsSection";
 import PortfoliosSection  from "./components/PortfoliosSection";
 import WhyUsSection       from "./components/WhyUsSection";
 import ServicesSection    from "./components/ServicesSection";
@@ -19,6 +20,8 @@ export default function App() {
         <Hero />
         <div className="section-divider" />
         <WhoWeAreSection />
+        <div className="section-divider" />
+        <ProblemsSolutionsSection />
         <div className="section-divider" />
         <PortfoliosSection />
         <div className="section-divider" />
